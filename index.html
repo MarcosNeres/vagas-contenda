@@ -50,37 +50,25 @@
     .foot{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 14px;color:#374151;font-size:12px;line-height:1.35}
 
     /* Impressão do comprovante */
-#printArea{display:none;}
-
-@media print{
-  @page { size: A4; margin: 12mm; }
-
-  body{ background:#fff; }
-  body *{ visibility:hidden !important; }
-
-  #printArea{ 
-    display:block !important;
-    visibility:visible !important;
-    position:static !important;   /* <- tira o fixed que causa repetição */
-    padding:0 !important;
-    margin:0 !important;
-  }
-  #printArea *{ visibility:visible !important; }
-
-  /* evita quebra */
-  .receipt{
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  /* garante que o resto some */
-  header, main, footer{ display:none !important; }
-  .no-print{ display:none !important; }
-}
+    #printArea{display:none;}
     @media print{
-  .receipt{ font-size: 12px; }
-  .sig img{ max-height: 50px; }
-}
+      @page { size: A4; margin: 12mm; }
+      body{ background:#fff; }
+      body *{ visibility:hidden !important; }
+      #printArea{
+        display:block !important;
+        visibility:visible !important;
+        position:static !important; /* evita repetição */
+        padding:0 !important;
+        margin:0 !important;
+      }
+      #printArea *{ visibility:visible !important; }
+      .receipt{ break-inside: avoid; page-break-inside: avoid; font-size:12px; }
+      .sig img{ max-height:50px; }
+      header, main, footer{ display:none !important; }
+      .no-print{ display:none !important; }
+    }
+
     .receipt{
       max-width:820px; margin:0 auto;
       border:1px solid #ddd; border-radius:12px; padding:14px;
@@ -291,7 +279,6 @@
 
     <div class="sigwrap">
       <div class="sig">
-        <!-- Insira a imagem da assinatura digital com este nome na mesma pasta do HTML -->
         <img src="assinatura-digital.png" alt="Assinatura Digital" onerror="this.style.display='none'">
         <div style="font-weight:900;">Secretaria Municipal de Educação, Cultura, Esporte e Turismo</div>
         <div class="muted small">Assinatura digital (conforme documento institucional)</div>
@@ -308,7 +295,7 @@
   /**********************
    * COLE SUA API URL *
    **********************/
-  const API_URL = "https://script.google.com/macros/s/AKfycbz5G966biDoaqidIh0jNnd4Kl7zCTIs4nY-FPWhr1iiBU1Y6aPe0-6OdP8NvocajTkY/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbx81Rcm8vYLf961I1EZPQ-lTGiAkw2H6IIAG1xfvFKiiFnxbKYmkcLiaaWMlFtpKBRv/exec";
 
   /**************************
    * VAGAS: 1 POR TURMA
@@ -359,7 +346,6 @@
         { turmaId: "M-4-ANO", turmaNome: "Manhã – 4º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-5-ANO", turmaNome: "Manhã – 5º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-SRM", turmaNome: "Manhã – SRM", vagas: DEFAULT_VAGAS_POR_TURMA },
-
         { turmaId: "T-INFANTIL-IV", turmaNome: "Tarde – Infantil IV", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-INFANTIL-V", turmaNome: "Tarde – Infantil V", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-1-ANO", turmaNome: "Tarde – 1º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
@@ -404,7 +390,6 @@
         { turmaId: "M-4-ANO", turmaNome: "Manhã – 4º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-5-ANO", turmaNome: "Manhã – 5º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-SRM", turmaNome: "Manhã – SRM", vagas: DEFAULT_VAGAS_POR_TURMA },
-
         { turmaId: "T-1-ANO", turmaNome: "Tarde – 1º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-2-ANO", turmaNome: "Tarde – 2º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-3-ANO", turmaNome: "Tarde – 3º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
@@ -425,7 +410,6 @@
         { turmaId: "M-5-ANO-A", turmaNome: "Manhã – 5º ano A", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-5-ANO-B", turmaNome: "Manhã – 5º ano B", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-SRM", turmaNome: "Manhã – SRM", vagas: DEFAULT_VAGAS_POR_TURMA },
-
         { turmaId: "T-1-ANO", turmaNome: "Tarde – 1º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-2-ANO", turmaNome: "Tarde – 2º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-3-ANO", turmaNome: "Tarde – 3º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
@@ -445,7 +429,6 @@
         { turmaId: "M-4-ANO-B", turmaNome: "Manhã – 4º ano B", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-5-ANO", turmaNome: "Manhã – 5º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-SRM", turmaNome: "Manhã – SRM", vagas: DEFAULT_VAGAS_POR_TURMA },
-
         { turmaId: "T-1-ANO", turmaNome: "Tarde – 1º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-2-ANO", turmaNome: "Tarde – 2º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-3-ANO-A", turmaNome: "Tarde – 3º ano A", vagas: DEFAULT_VAGAS_POR_TURMA },
@@ -467,7 +450,6 @@
         { turmaId: "M-4-ANO", turmaNome: "Manhã – 4º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-5-ANO", turmaNome: "Manhã – 5º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "M-SRM", turmaNome: "Manhã – SRM", vagas: DEFAULT_VAGAS_POR_TURMA },
-
         { turmaId: "T-INFANTIL-IV", turmaNome: "Tarde – Infantil IV", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-INFANTIL-V", turmaNome: "Tarde – Infantil V", vagas: DEFAULT_VAGAS_POR_TURMA },
         { turmaId: "T-1-ANO", turmaNome: "Tarde – 1º ano", vagas: DEFAULT_VAGAS_POR_TURMA },
@@ -495,7 +477,6 @@
     if (p4) out += "-" + p4;
     return out;
   }
-
   function maskCPF(cpfDigits){
     const d = onlyDigits(cpfDigits);
     if (d.length !== 11) return cpfDigits;
@@ -537,7 +518,7 @@
     const map = {};
     for (const e of CATALOGO){
       for (const t of e.turmas){
-        map[`${e.escolaId}|${t.turmaId}`] = t.vagas; // 1 vaga por turma
+        map[`${e.escolaId}|${t.turmaId}`] = t.vagas;
       }
     }
     return map;
@@ -600,24 +581,48 @@
   /*****************
    * API (Sheets)
    *****************/
+  async function safeFetchJson(url, options){
+    const res = await fetch(url, {
+      method: options?.method || "GET",
+      body: options?.body,
+      mode: "cors",
+      cache: "no-store",
+      redirect: "follow",
+      headers: options?.headers,
+    });
+
+    // se a implantação estiver errada, às vezes o Apps Script devolve HTML
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { throw new Error("Resposta não é JSON (verifique a implantação / permissões do Apps Script)."); }
+
+    return data;
+  }
+
   async function apiGetInscricoes(){
-    const res = await fetch(API_URL, { method:"GET" });
-    const data = await res.json();
+    const data = await safeFetchJson(API_URL, { method:"GET" });
     if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrições");
     return data.inscricoes || [];
   }
 
+  // ✅ busca por CPF (precisa do Apps Script com doGet aceitando ?cpf= )
+  async function apiGetInscricaoPorCpf(cpfDigits){
+    const url = API_URL + "?cpf=" + encodeURIComponent(cpfDigits);
+    const data = await safeFetchJson(url, { method:"GET" });
+    if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição por CPF");
+    // compatível: pode vir {found, inscricao} ou direto {inscricao}
+    return data.inscricao ?? null;
+  }
+
   async function apiSaveInscricao(payload){
-  const form = new FormData();
-  form.append("payload", JSON.stringify(payload));
+    const form = new FormData();
+    form.append("payload", JSON.stringify(payload));
+    const data = await safeFetchJson(API_URL, { method:"POST", body: form });
+    if (!data.ok) throw new Error(data.error || "Falha ao salvar inscrição");
+    return data;
+  }
 
-  const res = await fetch(API_URL, { method:"POST", body: form });
-  const data = await res.json();
-
-  if (!data.ok) throw new Error(data.error || "Falha ao salvar inscrição");
-  return data;
-}
-  
   /*****************
    * UI – VAGAS
    *****************/
@@ -729,6 +734,29 @@
     updateButtonsState();
   }
 
+  // ✅ cria um bloco já preenchido (para edição)
+  function addChoicePrefilled(escolaId, turmaId){
+    const blocks = $("choicesWrap").querySelectorAll(".choice").length;
+    if (blocks >= 3) return;
+
+    const block = createChoiceBlock(blocks);
+    $("choicesWrap").appendChild(block);
+
+    const selEscola = block.querySelector("[data-escola]");
+    const selTurma = block.querySelector("[data-turma]");
+
+    selEscola.value = escolaId || "";
+    // dispara carregamento de turmas
+    selEscola.dispatchEvent(new Event("change"));
+
+    // seleciona turma
+    if (turmaId){
+      selTurma.value = turmaId;
+    }
+
+    updateButtonsState();
+  }
+
   function readChoices(){
     const blocks = [...$("choicesWrap").querySelectorAll(".choice")];
     return blocks.map(b => {
@@ -762,7 +790,54 @@
    *****************/
   $("cpf").addEventListener("input", (e)=>{ e.target.value = formatCPF(e.target.value); });
 
-  $("btnContinuar").addEventListener("click", ()=>{
+  // ✅ Buscar minha inscrição (traz escolhas antigas e permite editar)
+  $("btnBuscar").addEventListener("click", async ()=>{
+    try{
+      const cpf = $("cpf").value;
+      if (!isValidCPF(cpf)){
+        showMsg("msgStep1","Informe um CPF válido para buscar sua inscrição.","status-bad");
+        return;
+      }
+      if (!API_URL || API_URL.includes("COLE_AQUI")){
+        showMsg("msgStep1","Configure a API_URL (URL do Apps Script) no HTML.","status-bad");
+        return;
+      }
+
+      showMsg("msgStep1","Buscando sua inscrição...","muted");
+
+      const cpfDigits = onlyDigits(cpf);
+      const inscricao = await apiGetInscricaoPorCpf(cpfDigits);
+
+      if (!inscricao){
+        showMsg("msgStep1","Nenhuma inscrição encontrada para este CPF. Você pode continuar e cadastrar.","status-warn");
+        return;
+      }
+
+      // preenche dados
+      $("nome").value = inscricao.nome || "";
+      $("admissao").value = inscricao.dataAdmissao || "";
+
+      // monta escolhas antigas
+      $("choicesWrap").innerHTML = "";
+      const op = inscricao.opcoes || [];
+      if (op.length){
+        op.forEach(o => addChoicePrefilled(o.escolaId, o.turmaId));
+      }else{
+        addChoice();
+      }
+
+      updateButtonsState();
+      setActiveStep(2);
+      showMsg("msgStep2","Inscrição encontrada. Altere suas opções e clique em “Enviar escolhas” para atualizar (substitui a anterior).","status-ok");
+      showMsg("msgStep1","");
+
+    }catch(err){
+      showMsg("msgStep1", "Erro ao buscar: " + (err.message || err), "status-bad");
+    }
+  });
+
+  // Continuar (abre a etapa 2 normalmente)
+  $("btnContinuar").addEventListener("click", async ()=>{
     const nome = ($("nome").value || "").trim();
     const cpf = $("cpf").value;
     const adm = $("admissao").value;
@@ -776,6 +851,18 @@
     addChoice();
     updateButtonsState();
     setActiveStep(2);
+
+    // opcional: avisa se já existe inscrição
+    try{
+      const existente = await apiGetInscricaoPorCpf(onlyDigits(cpf));
+      if (existente){
+        showMsg("msgStep2","CPF já possui inscrição. Ao enviar, sua inscrição será ATUALIZADA (substitui a anterior).","status-warn");
+      }else{
+        showMsg("msgStep2","");
+      }
+    }catch{
+      // se falhar, não trava o fluxo
+    }
   });
 
   $("btnAddChoice").addEventListener("click", ()=> addChoice());
@@ -795,6 +882,10 @@
       const adm = $("admissao").value;
       const opcoes = readChoices();
 
+      if (!nome){ showMsg("msgStep2","Informe o nome completo.","status-bad"); return; }
+      if (cpfDigits.length !== 11){ showMsg("msgStep2","CPF inválido.","status-bad"); return; }
+      if (!adm){ showMsg("msgStep2","Informe a data de admissão.","status-bad"); return; }
+
       if (opcoes.length === 0){
         showMsg("msgStep2","Selecione pelo menos 1 opção (Escola + Turma).","status-bad");
         return;
@@ -805,8 +896,9 @@
         return;
       }
 
-      showMsg("msgStep2","Salvando inscrição...","muted");
+      showMsg("msgStep2","Salvando inscrição (se já existir, será atualizada)...","muted");
 
+      // ✅ Apps Script atualizado: sobrescreve a linha do mesmo CPF
       await apiSaveInscricao({ nome, cpf: cpfDigits, dataAdmissao: adm, opcoes });
 
       const inscricoes = await apiGetInscricoes();
@@ -825,7 +917,7 @@
 
       showMsg("msgStep2","");
       setActiveStep(3);
-      showMsg("msgStep3","Inscrição registrada na planilha e resultado calculado com base no banco.","muted");
+      showMsg("msgStep3","Inscrição salva/atualizada na planilha e resultado calculado com base no banco.","muted");
     }catch(err){
       showMsg("msgStep2", `Erro: ${err.message || err}`, "status-bad");
     }
@@ -879,7 +971,6 @@
       return `<div><b>${i+1}ª opção:</b> ${labelOpcao(o.escolaId, o.turmaId)}</div>`;
     }).join("");
 
-    // OBS SRM
     const obsEl = $("rcptObsSRM");
     if (hasSRM(receipt.opcoes)){
       obsEl.style.display = "block";
@@ -907,6 +998,7 @@
     showMsg("msgStep2","");
     showMsg("msgStep3","");
     lastReceipt = null;
+    $("choicesWrap").innerHTML = "";
     setActiveStep(1);
   });
 
