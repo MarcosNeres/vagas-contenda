@@ -587,11 +587,15 @@
   }
 
   async function apiSaveInscricao(payload){
-  const res = await fetch(API_URL, {
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify(payload)
-  });
+  const form = new FormData();
+  form.append("payload", JSON.stringify(payload));
+
+  const res = await fetch(API_URL, { method:"POST", body: form });
+  const data = await res.json();
+
+  if (!data.ok) throw new Error(data.error || "Falha ao salvar inscrição");
+  return data;
+}
 
   const data = await res.json();
   if (!data.ok) throw new Error(data.error || "Falha ao salvar inscrição");
