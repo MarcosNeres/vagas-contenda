@@ -295,7 +295,7 @@
   /**********************
    * COLE SUA API URL *
    **********************/
-  const API_URL = "https://script.google.com/macros/s/AKfycbxcXj_R3Ngw4ZMUevEsNHvzocl7i9I3kZvdUd1NyIksLC51fAZK9mncTOraYH3Y4OtN/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbwk8uKa0CT1dqb4Zo5zumKutJlizmjU5NMezX2iEKIh1E-fiDLs3fpO8mtnp1S9HKwc/exec";
 
   /**************************
    * VAGAS: 1 POR TURMA
@@ -600,11 +600,13 @@
     return data;
   }
 
-  async function apiGetInscricoes(){
-    const data = await safeFetchJson(API_URL, { method:"GET" });
-    if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrições");
-    return data.inscricoes || [];
-  }
+  async function apiGetInscricaoPorCpf(cpfValue){
+  const cpfDigits = onlyDigits(cpfValue);
+  const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
+  const data = await safeFetchJson(url, { method:"GET" });
+  if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição");
+  return data.inscricao || null;
+}
 
   // ✅ busca por CPF (precisa do Apps Script com doGet aceitando ?cpf= )
   async function apiGetInscricaoPorCpf(cpfDigits){
@@ -623,49 +625,58 @@ async function apiGetInscricaoByCpf(cpfDigits){
   return data.inscricao; // pode ser null
 }
 
-$("btnBuscar").addEventListener("click", async ()=>{
+$("btnContinuar").addEventListener("click", async ()=>{
+  const nome = ($("nome").value || "").trim();
+  const cpf = $("cpf").value;
+
+  if (!nome){
+    showMsg("msgStep1","Informe o nome completo.","status-bad");
+    return;
+  }
+  if (!isValidCPF(cpf)){
+    showMsg("msgStep1","CPF inválido.","status-bad");
+    return;
+  }
+
+  // ✅ Se existir, não exige data
   try{
-    const cpfDigits = onlyDigits($("cpf").value);
-    if (!isValidCPF($("cpf").value)){
-      showMsg("msgStep1","CPF inválido. Verifique e tente novamente.","status-bad");
+    const existente = await apiGetInscricaoPorCpf(cpf);
+
+    if (existente){
+      // preenche (para editar)
+      $("admissao").value = existente.dataAdmissao || "";
+      showMsg("msgStep1","CPF encontrado. Você pode editar sua inscrição.","status-ok");
+
+      // abre etapa 2 com escolhas existentes
+      $("choicesWrap").innerHTML = "";
+      const op = existente.opcoes || [];
+      if (op.length){
+        op.forEach(o => addChoicePrefilled(o.escolaId, o.turmaId));
+      } else {
+        addChoice();
+      }
+      updateButtonsState();
+      setActiveStep(2);
       return;
     }
+  }catch(e){
+    // Se der erro na busca, não trava, segue como novo
+  }
 
-    showMsg("msgStep1","Buscando inscrição...","muted");
-    const ins = await apiGetInscricaoByCpf(cpfDigits);
+  // ✅ Se NÃO existir: exige data
+  const adm = $("admissao").value;
+  if (!adm){
+    showMsg("msgStep1","Informe a data de admissão (obrigatória para novo cadastro).","status-bad");
+    return;
+  }
 
-    if (!ins){
-      showMsg("msgStep1","CPF não encontrado. Caso ainda não tenha enviado, clique em Continuar para fazer sua inscrição.","status-warn");
-      return;
-    }
-
-    // preenche nome e admissão (para editar)
-    $("nome").value = ins.nome || "";
-    $("admissao").value = ins.dataAdmissao || "";
-
-    // abre etapa 2 e preenche escolhas existentes
-    $("choicesWrap").innerHTML = "";
-    const opcoes = ins.opcoes || [];
-    const n = Math.max(1, Math.min(3, opcoes.length || 1));
-    for (let i=0; i<n; i++){
-      const block = createChoiceBlock(i);
-      $("choicesWrap").appendChild(block);
-    }
-    // preenche selects após inserir blocos
-    const blocks = [...$("choicesWrap").querySelectorAll(".choice")];
-    blocks.forEach((b, i)=>{
-      const selEscola = b.querySelector("[data-escola]");
-      const selTurma = b.querySelector("[data-turma]");
-      const opc = opcoes[i];
-      if (!opc) return;
-
-      selEscola.value = opc.escolaId;
-      // dispara change para carregar turmas
-      selEscola.dispatchEvent(new Event("change"));
-
-      selTurma.value = opc.turmaId;
-    });
-
+  // novo cadastro
+  showMsg("msgStep1","");
+  $("choicesWrap").innerHTML = "";
+  addChoice();
+  updateButtonsState();
+  setActiveStep(2);
+});
     updateButtonsState();
     setActiveStep(2);
     showMsg("msgStep1","Inscrição encontrada! Você pode alterar as escolhas e reenviar.","status-ok");
