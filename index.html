@@ -295,7 +295,7 @@
   /**********************
    * COLE SUA API URL *
    **********************/
-  const API_URL = "https://script.google.com/macros/s/AKfycbz4SI-SQopmtPZaDnpbhA_VI3fBnYR_VLMY6skkeiaMzh1_MHFDQAHf4EDrxkI91aGb/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbyK-HN-8ssHTooslrDJQN4exQcGhHkTe4XqLq-QJl9Axo2jBZajUJd2o_1wHQYgXG6X/exec";
 
   /**************************
    * VAGAS: 1 POR TURMA
@@ -615,6 +615,65 @@
     return data.inscricao ?? null;
   }
 
+async function apiGetInscricaoByCpf(cpfDigits){
+  const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
+  const res = await fetch(url, { method:"GET" });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição");
+  return data.inscricao; // pode ser null
+}
+
+$("btnBuscar").addEventListener("click", async ()=>{
+  try{
+    const cpfDigits = onlyDigits($("cpf").value);
+    if (!isValidCPF($("cpf").value)){
+      showMsg("msgStep1","CPF inválido. Verifique e tente novamente.","status-bad");
+      return;
+    }
+
+    showMsg("msgStep1","Buscando inscrição...","muted");
+    const ins = await apiGetInscricaoByCpf(cpfDigits);
+
+    if (!ins){
+      showMsg("msgStep1","CPF não encontrado. Caso ainda não tenha enviado, clique em Continuar para fazer sua inscrição.","status-warn");
+      return;
+    }
+
+    // preenche nome e admissão (para editar)
+    $("nome").value = ins.nome || "";
+    $("admissao").value = ins.dataAdmissao || "";
+
+    // abre etapa 2 e preenche escolhas existentes
+    $("choicesWrap").innerHTML = "";
+    const opcoes = ins.opcoes || [];
+    const n = Math.max(1, Math.min(3, opcoes.length || 1));
+    for (let i=0; i<n; i++){
+      const block = createChoiceBlock(i);
+      $("choicesWrap").appendChild(block);
+    }
+    // preenche selects após inserir blocos
+    const blocks = [...$("choicesWrap").querySelectorAll(".choice")];
+    blocks.forEach((b, i)=>{
+      const selEscola = b.querySelector("[data-escola]");
+      const selTurma = b.querySelector("[data-turma]");
+      const opc = opcoes[i];
+      if (!opc) return;
+
+      selEscola.value = opc.escolaId;
+      // dispara change para carregar turmas
+      selEscola.dispatchEvent(new Event("change"));
+
+      selTurma.value = opc.turmaId;
+    });
+
+    updateButtonsState();
+    setActiveStep(2);
+    showMsg("msgStep1","Inscrição encontrada! Você pode alterar as escolhas e reenviar.","status-ok");
+  }catch(err){
+    showMsg("msgStep1", `Erro ao buscar: ${err.message || err}`, "status-bad");
+  }
+});
+  
   async function apiSaveInscricao(payload){
     const form = new FormData();
     form.append("payload", JSON.stringify(payload));
