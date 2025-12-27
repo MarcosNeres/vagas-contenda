@@ -58,7 +58,7 @@
       #printArea{
         display:block !important;
         visibility:visible !important;
-        position:static !important; /* evita repetição */
+        position:static !important;
         padding:0 !important;
         margin:0 !important;
       }
@@ -599,7 +599,7 @@
     return data;
   }
 
-  // Busca por CPF (Apps Script com doGet aceitando ?cpf=)
+  // Busca por CPF
   async function apiGetInscricaoPorCpf(cpfValue){
     const cpfDigits = onlyDigits(cpfValue);
     const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
@@ -608,7 +608,7 @@
     return data.inscricao ?? null;
   }
 
-  // Lista todas as inscrições (usa alguns nomes comuns de parâmetro para compatibilidade)
+  // Lista todas as inscrições
   async function apiGetInscricoes(){
     const tries = [
       `${API_URL}?list=1`,
@@ -623,16 +623,8 @@
     for (const url of tries){
       try{
         const data = await safeFetchJson(url, { method:"GET" });
-
-        // formatos comuns:
-        // { ok:true, inscricoes:[...] }
-        // { ok:true, data:[...] }
-        // { ok:true, rows:[...] }
         const arr = data.inscricoes ?? data.data ?? data.rows ?? null;
-
         if (data.ok && Array.isArray(arr)) return arr;
-
-        // se veio ok mas sem array, tenta próxima
         lastErr = new Error(data.error || "Resposta OK, mas sem lista de inscrições.");
       }catch(e){
         lastErr = e;
@@ -761,7 +753,6 @@
     updateButtonsState();
   }
 
-  // cria um bloco já preenchido (para edição)
   function addChoicePrefilled(escolaId, turmaId){
     const blocks = $("choicesWrap").querySelectorAll(".choice").length;
     if (blocks >= 3) return;
@@ -815,7 +806,7 @@
    *****************/
   $("cpf").addEventListener("input", (e)=>{ e.target.value = formatCPF(e.target.value); });
 
-  // Buscar minha inscrição (traz escolhas antigas e permite editar)
+  // Buscar minha inscrição
   $("btnBuscar").addEventListener("click", async ()=>{
     try{
       const cpf = $("cpf").value;
@@ -848,6 +839,9 @@
         addChoice();
       }
 
+      // ✅ BLOQUEIA a data (não altera se já cadastrado)
+      $("admissao").disabled = true;
+
       updateButtonsState();
       setActiveStep(2);
       showMsg("msgStep2","Inscrição encontrada. Altere suas opções e clique em “Enviar escolhas” para atualizar (substitui a anterior).","status-ok");
@@ -858,7 +852,7 @@
     }
   });
 
-  // Continuar (se CPF já existir, permite editar sem exigir data; se não existir, exige data)
+  // ✅ Continuar: se CPF existir, NÃO pede data e BLOQUEIA o campo
   $("btnContinuar").addEventListener("click", async ()=>{
     const nome = ($("nome").value || "").trim();
     const cpf = $("cpf").value;
@@ -870,12 +864,15 @@
       return;
     }
 
-    // tenta achar inscrição existente
+    showMsg("msgStep1","Verificando CPF...","muted");
+
+    // tenta buscar inscrição existente
     try{
       const existente = await apiGetInscricaoPorCpf(cpf);
+
       if (existente){
         $("admissao").value = existente.dataAdmissao || "";
-        showMsg("msgStep1","CPF encontrado. Você pode editar sua inscrição.","status-ok");
+        $("admissao").disabled = true; // ✅ trava
 
         $("choicesWrap").innerHTML = "";
         const op = existente.opcoes || [];
@@ -887,16 +884,22 @@
 
         updateButtonsState();
         setActiveStep(2);
-        showMsg("msgStep2","Edite as opções e clique em “Enviar escolhas” para atualizar (substitui a anterior).","status-warn");
+
+        showMsg("msgStep1","");
+        showMsg("msgStep2","CPF já cadastrado. Você pode editar as escolhas e reenviar (atualiza a inscrição).","status-ok");
         return;
       }
-    }catch{
-      // se falhar, segue fluxo de novo cadastro
+    }catch(e){
+      // se der erro na busca, segue como novo cadastro
     }
 
-    // novo cadastro exige data
+    // CPF não encontrado: exige data e garante campo habilitado
+    $("admissao").disabled = false;
     const adm = $("admissao").value;
-    if (!adm){ showMsg("msgStep1","Informe a data de admissão (obrigatória para novo cadastro).","status-bad"); return; }
+    if (!adm){
+      showMsg("msgStep1","Informe a data de admissão (obrigatória para novo cadastro).","status-bad");
+      return;
+    }
 
     showMsg("msgStep1","");
     $("choicesWrap").innerHTML = "";
@@ -1039,6 +1042,10 @@
     showMsg("msgStep3","");
     lastReceipt = null;
     $("choicesWrap").innerHTML = "";
+
+    // ✅ volta e libera a data para novo cadastro
+    $("admissao").disabled = false;
+
     setActiveStep(1);
   });
 
