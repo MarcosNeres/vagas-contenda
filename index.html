@@ -50,17 +50,37 @@
     .foot{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 14px;color:#374151;font-size:12px;line-height:1.35}
 
     /* Impressão do comprovante */
-    #printArea{display:none;}
+#printArea{display:none;}
+
+@media print{
+  @page { size: A4; margin: 12mm; }
+
+  body{ background:#fff; }
+  body *{ visibility:hidden !important; }
+
+  #printArea{ 
+    display:block !important;
+    visibility:visible !important;
+    position:static !important;   /* <- tira o fixed que causa repetição */
+    padding:0 !important;
+    margin:0 !important;
+  }
+  #printArea *{ visibility:visible !important; }
+
+  /* evita quebra */
+  .receipt{
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* garante que o resto some */
+  header, main, footer{ display:none !important; }
+  .no-print{ display:none !important; }
+}
     @media print{
-      body *{visibility:hidden;}
-      #printArea, #printArea *{visibility:visible;}
-      #printArea{
-        display:block;
-        position:fixed; left:0; top:0; right:0; bottom:0;
-        background:#fff; padding:18px;
-      }
-      .no-print{display:none !important;}
-    }
+  .receipt{ font-size: 12px; }
+  .sig img{ max-height: 50px; }
+}
     .receipt{
       max-width:820px; margin:0 auto;
       border:1px solid #ddd; border-radius:12px; padding:14px;
@@ -821,7 +841,7 @@
       </div>`;
     }else{
       statusHtml = `<div class="status-warn" style="font-weight:900; margin:4px 0 8px 0;">
-        ⏳ LISTA DE ESPERA: sem vagas nas opções informadas
+        ⏳ LISTA DE ESPERA: vaga será preenchida conforme data de admissão
       </div>`;
     }
 
