@@ -989,7 +989,7 @@ $("btnBuscar").addEventListener("click", async ()=>{
     let statusHtml = "";
     if (receipt.res?.status === "ALOCADO"){
       statusHtml = `<div class="status-ok" style="font-weight:900; margin:4px 0 8px 0;">
-        ✅ ALOCADO(A): ${labelOpcao(receipt.res.opcaoAlocada.escolaId, receipt.res.opcaoAlocada.turmaId)}
+        ✅ ALOCADO(A) PROVISORIAMENTE: ${labelOpcao(receipt.res.opcaoAlocada.escolaId, receipt.res.opcaoAlocada.turmaId)}
       </div>`;
     }else{
       statusHtml = `<div class="status-warn" style="font-weight:900; margin:4px 0 8px 0;">
@@ -1045,7 +1045,7 @@ $("btnBuscar").addEventListener("click", async ()=>{
     }
 
     if (receipt.res?.status === "ALOCADO"){
-      $("rcptResultado").textContent = `ALOCADO(A) em: ${labelOpcao(receipt.res.opcaoAlocada.escolaId, receipt.res.opcaoAlocada.turmaId)}`;
+      $("rcptResultado").textContent = `ALOCADO(A) PROVISORIAMENTE em: ${labelOpcao(receipt.res.opcaoAlocada.escolaId, receipt.res.opcaoAlocada.turmaId)}`;
     }else{
       $("rcptResultado").textContent = "LISTA DE ESPERA (sem vaga nas opções informadas)";
     }
