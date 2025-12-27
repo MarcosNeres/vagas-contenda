@@ -591,7 +591,6 @@
       headers: options?.headers,
     });
 
-    // se a implantação estiver errada, às vezes o Apps Script devolve HTML
     const text = await res.text();
     let data;
     try { data = JSON.parse(text); }
@@ -600,91 +599,49 @@
     return data;
   }
 
+  // Busca por CPF (Apps Script com doGet aceitando ?cpf=)
   async function apiGetInscricaoPorCpf(cpfValue){
-  const cpfDigits = onlyDigits(cpfValue);
-  const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
-  const data = await safeFetchJson(url, { method:"GET" });
-  if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição");
-  return data.inscricao || null;
-}
-
-  // ✅ busca por CPF (precisa do Apps Script com doGet aceitando ?cpf= )
-  async function apiGetInscricaoPorCpf(cpfDigits){
-    const url = API_URL + "?cpf=" + encodeURIComponent(cpfDigits);
+    const cpfDigits = onlyDigits(cpfValue);
+    const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
     const data = await safeFetchJson(url, { method:"GET" });
     if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição por CPF");
-    // compatível: pode vir {found, inscricao} ou direto {inscricao}
     return data.inscricao ?? null;
   }
 
-async function apiGetInscricaoByCpf(cpfDigits){
-  const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
-  const res = await fetch(url, { method:"GET" });
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição");
-  return data.inscricao; // pode ser null
-}
+  // Lista todas as inscrições (usa alguns nomes comuns de parâmetro para compatibilidade)
+  async function apiGetInscricoes(){
+    const tries = [
+      `${API_URL}?list=1`,
+      `${API_URL}?all=1`,
+      `${API_URL}?action=list`,
+      `${API_URL}?op=list`,
+      `${API_URL}`
+    ];
 
-$("btnContinuar").addEventListener("click", async ()=>{
-  const nome = ($("nome").value || "").trim();
-  const cpf = $("cpf").value;
+    let lastErr = null;
 
-  if (!nome){
-    showMsg("msgStep1","Informe o nome completo.","status-bad");
-    return;
-  }
-  if (!isValidCPF(cpf)){
-    showMsg("msgStep1","CPF inválido.","status-bad");
-    return;
-  }
+    for (const url of tries){
+      try{
+        const data = await safeFetchJson(url, { method:"GET" });
 
-  // ✅ Se existir, não exige data
-  try{
-    const existente = await apiGetInscricaoPorCpf(cpf);
+        // formatos comuns:
+        // { ok:true, inscricoes:[...] }
+        // { ok:true, data:[...] }
+        // { ok:true, rows:[...] }
+        const arr = data.inscricoes ?? data.data ?? data.rows ?? null;
 
-    if (existente){
-      // preenche (para editar)
-      $("admissao").value = existente.dataAdmissao || "";
-      showMsg("msgStep1","CPF encontrado. Você pode editar sua inscrição.","status-ok");
+        if (data.ok && Array.isArray(arr)) return arr;
 
-      // abre etapa 2 com escolhas existentes
-      $("choicesWrap").innerHTML = "";
-      const op = existente.opcoes || [];
-      if (op.length){
-        op.forEach(o => addChoicePrefilled(o.escolaId, o.turmaId));
-      } else {
-        addChoice();
+        // se veio ok mas sem array, tenta próxima
+        lastErr = new Error(data.error || "Resposta OK, mas sem lista de inscrições.");
+      }catch(e){
+        lastErr = e;
       }
-      updateButtonsState();
-      setActiveStep(2);
-      return;
     }
-  }catch(e){
-    // Se der erro na busca, não trava, segue como novo
+
+    throw lastErr || new Error("Falha ao listar inscrições.");
   }
 
-  // ✅ Se NÃO existir: exige data
-  const adm = $("admissao").value;
-  if (!adm){
-    showMsg("msgStep1","Informe a data de admissão (obrigatória para novo cadastro).","status-bad");
-    return;
-  }
-
-  // novo cadastro
-  showMsg("msgStep1","");
-  $("choicesWrap").innerHTML = "";
-  addChoice();
-  updateButtonsState();
-  setActiveStep(2);
-});
-    updateButtonsState();
-    setActiveStep(2);
-    showMsg("msgStep1","Inscrição encontrada! Você pode alterar as escolhas e reenviar.","status-ok");
-  }catch(err){
-    showMsg("msgStep1", `Erro ao buscar: ${err.message || err}`, "status-bad");
-  }
-});
-  
   async function apiSaveInscricao(payload){
     const form = new FormData();
     form.append("payload", JSON.stringify(payload));
@@ -804,7 +761,7 @@ $("btnContinuar").addEventListener("click", async ()=>{
     updateButtonsState();
   }
 
-  // ✅ cria um bloco já preenchido (para edição)
+  // cria um bloco já preenchido (para edição)
   function addChoicePrefilled(escolaId, turmaId){
     const blocks = $("choicesWrap").querySelectorAll(".choice").length;
     if (blocks >= 3) return;
@@ -816,10 +773,8 @@ $("btnContinuar").addEventListener("click", async ()=>{
     const selTurma = block.querySelector("[data-turma]");
 
     selEscola.value = escolaId || "";
-    // dispara carregamento de turmas
     selEscola.dispatchEvent(new Event("change"));
 
-    // seleciona turma
     if (turmaId){
       selTurma.value = turmaId;
     }
@@ -860,7 +815,7 @@ $("btnContinuar").addEventListener("click", async ()=>{
    *****************/
   $("cpf").addEventListener("input", (e)=>{ e.target.value = formatCPF(e.target.value); });
 
-  // ✅ Buscar minha inscrição (traz escolhas antigas e permite editar)
+  // Buscar minha inscrição (traz escolhas antigas e permite editar)
   $("btnBuscar").addEventListener("click", async ()=>{
     try{
       const cpf = $("cpf").value;
@@ -875,19 +830,16 @@ $("btnContinuar").addEventListener("click", async ()=>{
 
       showMsg("msgStep1","Buscando sua inscrição...","muted");
 
-      const cpfDigits = onlyDigits(cpf);
-      const inscricao = await apiGetInscricaoPorCpf(cpfDigits);
+      const inscricao = await apiGetInscricaoPorCpf(cpf);
 
       if (!inscricao){
         showMsg("msgStep1","Nenhuma inscrição encontrada para este CPF. Você pode continuar e cadastrar.","status-warn");
         return;
       }
 
-      // preenche dados
       $("nome").value = inscricao.nome || "";
       $("admissao").value = inscricao.dataAdmissao || "";
 
-      // monta escolhas antigas
       $("choicesWrap").innerHTML = "";
       const op = inscricao.opcoes || [];
       if (op.length){
@@ -906,33 +858,52 @@ $("btnContinuar").addEventListener("click", async ()=>{
     }
   });
 
-  // Continuar (abre a etapa 2 normalmente)
+  // Continuar (se CPF já existir, permite editar sem exigir data; se não existir, exige data)
   $("btnContinuar").addEventListener("click", async ()=>{
     const nome = ($("nome").value || "").trim();
     const cpf = $("cpf").value;
-    const adm = $("admissao").value;
 
     if (!nome){ showMsg("msgStep1","Informe o nome completo.","status-bad"); return; }
     if (!isValidCPF(cpf)){ showMsg("msgStep1","CPF inválido. Verifique e tente novamente.","status-bad"); return; }
-    if (!adm){ showMsg("msgStep1","Informe a data de admissão.","status-bad"); return; }
+    if (!API_URL || API_URL.includes("COLE_AQUI")){
+      showMsg("msgStep1","Configure a API_URL (URL do Apps Script) no HTML.","status-bad");
+      return;
+    }
+
+    // tenta achar inscrição existente
+    try{
+      const existente = await apiGetInscricaoPorCpf(cpf);
+      if (existente){
+        $("admissao").value = existente.dataAdmissao || "";
+        showMsg("msgStep1","CPF encontrado. Você pode editar sua inscrição.","status-ok");
+
+        $("choicesWrap").innerHTML = "";
+        const op = existente.opcoes || [];
+        if (op.length){
+          op.forEach(o => addChoicePrefilled(o.escolaId, o.turmaId));
+        } else {
+          addChoice();
+        }
+
+        updateButtonsState();
+        setActiveStep(2);
+        showMsg("msgStep2","Edite as opções e clique em “Enviar escolhas” para atualizar (substitui a anterior).","status-warn");
+        return;
+      }
+    }catch{
+      // se falhar, segue fluxo de novo cadastro
+    }
+
+    // novo cadastro exige data
+    const adm = $("admissao").value;
+    if (!adm){ showMsg("msgStep1","Informe a data de admissão (obrigatória para novo cadastro).","status-bad"); return; }
 
     showMsg("msgStep1","");
     $("choicesWrap").innerHTML = "";
     addChoice();
     updateButtonsState();
     setActiveStep(2);
-
-    // opcional: avisa se já existe inscrição
-    try{
-      const existente = await apiGetInscricaoPorCpf(onlyDigits(cpf));
-      if (existente){
-        showMsg("msgStep2","CPF já possui inscrição. Ao enviar, sua inscrição será ATUALIZADA (substitui a anterior).","status-warn");
-      }else{
-        showMsg("msgStep2","");
-      }
-    }catch{
-      // se falhar, não trava o fluxo
-    }
+    showMsg("msgStep2","");
   });
 
   $("btnAddChoice").addEventListener("click", ()=> addChoice());
@@ -968,7 +939,6 @@ $("btnContinuar").addEventListener("click", async ()=>{
 
       showMsg("msgStep2","Salvando inscrição (se já existir, será atualizada)...","muted");
 
-      // ✅ Apps Script atualizado: sobrescreve a linha do mesmo CPF
       await apiSaveInscricao({ nome, cpf: cpfDigits, dataAdmissao: adm, opcoes });
 
       const inscricoes = await apiGetInscricoes();
@@ -1097,3 +1067,4 @@ $("btnContinuar").addEventListener("click", async ()=>{
 </script>
 </body>
 </html>
+
