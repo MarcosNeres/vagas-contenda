@@ -293,6 +293,12 @@
 
 <script>
   /**********************
+   * FLAGS (CPF EXISTE)
+   **********************/
+  let cpfJaCadastrado = false;
+  let dataAdmissaoSalva = "";
+
+  /**********************
    * COLE SUA API URL *
    **********************/
   const API_URL = "https://script.google.com/macros/s/AKfycbxl-uQCcNe1GYjRircFuVT0Gla-Ucid4piSt3SDZx92QlAoRazl_5qV90XJYzIJ9Xp3/exec";
@@ -599,7 +605,6 @@
     return data;
   }
 
-  // Busca por CPF
   async function apiGetInscricaoPorCpf(cpfValue){
     const cpfDigits = onlyDigits(cpfValue);
     const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
@@ -608,7 +613,6 @@
     return data.inscricao ?? null;
   }
 
-  // Lista todas as inscrições
   async function apiGetInscricoes(){
     const tries = [
       `${API_URL}?list=1`,
@@ -824,12 +828,20 @@
       const inscricao = await apiGetInscricaoPorCpf(cpf);
 
       if (!inscricao){
+        cpfJaCadastrado = false;
+        dataAdmissaoSalva = "";
+        $("admissao").disabled = false;
         showMsg("msgStep1","Nenhuma inscrição encontrada para este CPF. Você pode continuar e cadastrar.","status-warn");
         return;
       }
 
       $("nome").value = inscricao.nome || "";
       $("admissao").value = inscricao.dataAdmissao || "";
+
+      // ✅ marca como cadastrado e trava a data
+      cpfJaCadastrado = true;
+      dataAdmissaoSalva = inscricao.dataAdmissao || "";
+      $("admissao").disabled = true;
 
       $("choicesWrap").innerHTML = "";
       const op = inscricao.opcoes || [];
@@ -839,15 +851,15 @@
         addChoice();
       }
 
-      // ✅ BLOQUEIA a data (não altera se já cadastrado)
-      $("admissao").disabled = true;
-
       updateButtonsState();
       setActiveStep(2);
       showMsg("msgStep2","Inscrição encontrada. Altere suas opções e clique em “Enviar escolhas” para atualizar (substitui a anterior).","status-ok");
       showMsg("msgStep1","");
 
     }catch(err){
+      cpfJaCadastrado = false;
+      dataAdmissaoSalva = "";
+      $("admissao").disabled = false;
       showMsg("msgStep1", "Erro ao buscar: " + (err.message || err), "status-bad");
     }
   });
@@ -859,20 +871,23 @@
 
     if (!nome){ showMsg("msgStep1","Informe o nome completo.","status-bad"); return; }
     if (!isValidCPF(cpf)){ showMsg("msgStep1","CPF inválido. Verifique e tente novamente.","status-bad"); return; }
-    if (!API_URL || API_URL.includes("COLE_AQUI")){
-      showMsg("msgStep1","Configure a API_URL (URL do Apps Script) no HTML.","status-bad");
-      return;
-    }
+    if (!API_URL){ showMsg("msgStep1","API_URL não configurada.","status-bad"); return; }
 
     showMsg("msgStep1","Verificando CPF...","muted");
 
-    // tenta buscar inscrição existente
+    cpfJaCadastrado = false;
+    dataAdmissaoSalva = "";
+    $("admissao").disabled = false;
+
     try{
       const existente = await apiGetInscricaoPorCpf(cpf);
 
       if (existente){
-        $("admissao").value = existente.dataAdmissao || "";
-        $("admissao").disabled = true; // ✅ trava
+        cpfJaCadastrado = true;
+        dataAdmissaoSalva = existente.dataAdmissao || "";
+
+        $("admissao").value = dataAdmissaoSalva;
+        $("admissao").disabled = true;
 
         $("choicesWrap").innerHTML = "";
         const op = existente.opcoes || [];
@@ -884,28 +899,30 @@
 
         updateButtonsState();
         setActiveStep(2);
-
         showMsg("msgStep1","");
         showMsg("msgStep2","CPF já cadastrado. Você pode editar as escolhas e reenviar (atualiza a inscrição).","status-ok");
         return;
       }
-    }catch(e){
-      // se der erro na busca, segue como novo cadastro
+    }catch(err){
+      // se falhar a busca, segue como novo
     }
 
-    // CPF não encontrado: exige data e garante campo habilitado
-    $("admissao").disabled = false;
+    // CPF NÃO existe: exige data
     const adm = $("admissao").value;
     if (!adm){
       showMsg("msgStep1","Informe a data de admissão (obrigatória para novo cadastro).","status-bad");
       return;
     }
 
-    showMsg("msgStep1","");
+    cpfJaCadastrado = false;
+    dataAdmissaoSalva = adm;
+    $("admissao").disabled = false;
+
     $("choicesWrap").innerHTML = "";
     addChoice();
     updateButtonsState();
     setActiveStep(2);
+    showMsg("msgStep1","");
     showMsg("msgStep2","");
   });
 
@@ -923,12 +940,24 @@
 
       const nome = ($("nome").value || "").trim();
       const cpfDigits = onlyDigits($("cpf").value);
-      const adm = $("admissao").value;
+
+      // ✅ se já cadastrado, usa a data salva (mesmo com campo travado)
+      const adm = cpfJaCadastrado ? (dataAdmissaoSalva || $("admissao").value) : $("admissao").value;
+
       const opcoes = readChoices();
 
       if (!nome){ showMsg("msgStep2","Informe o nome completo.","status-bad"); return; }
       if (cpfDigits.length !== 11){ showMsg("msgStep2","CPF inválido.","status-bad"); return; }
-      if (!adm){ showMsg("msgStep2","Informe a data de admissão.","status-bad"); return; }
+
+      // ✅ só exige data se for NOVO
+      if (!adm && !cpfJaCadastrado){
+        showMsg("msgStep2","Informe a data de admissão.","status-bad");
+        return;
+      }
+      if (!adm && cpfJaCadastrado){
+        showMsg("msgStep2","Cadastro encontrado, mas sem data de admissão registrada. Ajuste o registro na planilha.","status-warn");
+        return;
+      }
 
       if (opcoes.length === 0){
         showMsg("msgStep2","Selecione pelo menos 1 opção (Escola + Turma).","status-bad");
@@ -1043,7 +1072,9 @@
     lastReceipt = null;
     $("choicesWrap").innerHTML = "";
 
-    // ✅ volta e libera a data para novo cadastro
+    // ✅ reseta flags e libera a data para NOVO cadastro
+    cpfJaCadastrado = false;
+    dataAdmissaoSalva = "";
     $("admissao").disabled = false;
 
     setActiveStep(1);
