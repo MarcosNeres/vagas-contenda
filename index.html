@@ -301,7 +301,7 @@
   /**********************
    * COLE SUA API URL *
    **********************/
-  const API_URL = "https://script.google.com/macros/s/AKfycbxl-uQCcNe1GYjRircFuVT0Gla-Ucid4piSt3SDZx92QlAoRazl_5qV90XJYzIJ9Xp3/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbzYUbO7Gu2wF7iLtJLcWjfokTHQS89ZfBwbLCtNuX56hhkzXVgbYwh3_Czm__CuGyd_/exec";
 
   /**************************
    * VAGAS: 1 POR TURMA
@@ -607,7 +607,7 @@
 
   async function apiGetInscricaoPorCpf(cpfValue){
     const cpfDigits = onlyDigits(cpfValue);
-    const url = `${API_URL}?cpf=${encodeURIComponent(cpfDigits)}`;
+    const url = `${API_URL}?page=inscricoes&cpf=${encodeURIComponent(cpfDigits)}`;
     const data = await safeFetchJson(url, { method:"GET" });
     if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição por CPF");
     return data.inscricao ?? null;
@@ -615,12 +615,12 @@
 
   async function apiGetInscricoes(){
     const tries = [
-      `${API_URL}?list=1`,
-      `${API_URL}?all=1`,
-      `${API_URL}?action=list`,
-      `${API_URL}?op=list`,
-      `${API_URL}`
-    ];
+  `${API_URL}?page=inscricoes&list=1`,
+  `${API_URL}?page=inscricoes&all=1`,
+  `${API_URL}?page=inscricoes&action=list`,
+  `${API_URL}?page=inscricoes&op=list`,
+  `${API_URL}?page=inscricoes`
+];
 
     let lastErr = null;
 
@@ -639,12 +639,13 @@
   }
 
   async function apiSaveInscricao(payload){
-    const form = new FormData();
-    form.append("payload", JSON.stringify(payload));
-    const data = await safeFetchJson(API_URL, { method:"POST", body: form });
-    if (!data.ok) throw new Error(data.error || "Falha ao salvar inscrição");
-    return data;
-  }
+  payload.page = "inscricoes"; // ✅ Página 1 grava na aba INSCRICOES
+  const form = new FormData();
+  form.append("payload", JSON.stringify(payload));
+  const data = await safeFetchJson(API_URL, { method:"POST", body: form });
+  if (!data.ok) throw new Error(data.error || "Falha ao salvar inscrição");
+  return data;
+}
 
   /*****************
    * UI – VAGAS
