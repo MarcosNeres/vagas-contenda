@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Escolha de Vagas – Professores Ed. Infantil | Rede Municipal de Contenda</title>
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#fff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+      --primary:#0b4aa2; --primary2:#0a2a5a; --danger:#b91c1c; --ok:#047857; --warn:#a16207;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(90deg,var(--primary2),var(--primary));color:#fff;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.15)}
+    .topbar{max-width:1100px;margin:0 auto;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .logos{display:flex;gap:10px;align-items:center}
+    .logo{height:44px;width:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:6px 8px}
+    .titles h1{margin:0;font-size:16px;line-height:1.2}
+    .titles p{margin:4px 0 0 0;font-size:12px;opacity:.95}
+    .stepper{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+    .pill{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);user-select:none}
+    main{max-width:1100px;margin:0 auto;padding:16px;display:grid;gap:12px}
+    @media (min-width: 920px){ main{grid-template-columns:1.25fr .75fr;} }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .h2{margin:0 0 8px 0;font-size:16px}
+    .muted{color:var(--muted);font-size:12px}
+    .small{font-size:12px}
+    .grid{display:grid;gap:10px}
+    @media (min-width: 700px){ .grid.two{grid-template-columns:1fr 1fr;} }
+    label{display:block;font-weight:800;font-size:13px;margin-bottom:6px}
+    input,select,button{width:100%;padding:10px 10px;border-radius:12px;border:1px solid var(--border);background:#fff;font-size:14px;outline:none}
+    input:focus,select:focus{border-color:#93c5fd;box-shadow:0 0 0 3px rgba(147,197,253,.45)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .btn{cursor:pointer;border:none;border-radius:12px;padding:10px 12px;font-weight:900;font-size:14px}
+    .btn.primary{background:var(--primary);color:#fff}
+    .btn.secondary{background:#1118270f;color:var(--text);border:1px solid var(--border)}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .divider{height:1px;background:var(--border);margin:12px 0}
+    .choice{border:1px dashed var(--border);border-radius:14px;padding:10px;background:#fafafa}
+    .badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:900;border:1px solid var(--border);background:#fff;margin-right:6px}
+    .status-ok{color:var(--ok)}
+    .status-warn{color:var(--warn)}
+    .status-bad{color:var(--danger)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+    th{color:#374151;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+    .hidden{display:none !important;}
+    footer{max-width:1100px;margin:0 auto;padding:0 16px 16px}
+    .foot{background:#fff;border:1px solid var(--border);border-radius:16px;padding:12px 14px;color:#374151;font-size:12px;line-height:1.35}
+
+    /* Impressão do comprovante */
+    #printArea{display:none;}
+    @media print{
+      @page { size: A4; margin: 12mm; }
+      body{ background:#fff; }
+      body *{ visibility:hidden !important; }
+      #printArea{
+        display:block !important;
+        visibility:visible !important;
+        position:static !important;
+        padding:0 !important;
+        margin:0 !important;
+      }
+      #printArea *{ visibility:visible !important; }
+      .receipt{ break-inside: avoid; page-break-inside: avoid; font-size:12px; }
+      .sig img{ max-height:50px; }
+      header, main, footer{ display:none !important; }
+      .no-print{ display:none !important; }
+    }
+
+    .receipt{
+      max-width:820px; margin:0 auto;
+      border:1px solid #ddd; border-radius:12px; padding:14px;
+    }
+    .receipt h2{margin:0 0 6px 0; font-size:16px}
+    .receipt .row{display:flex; gap:12px; flex-wrap:wrap}
+    .receipt .box{
+      flex:1 1 220px;
+      border:1px solid #eee; border-radius:10px; padding:10px;
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .sigwrap{
+      display:flex; gap:14px; align-items:flex-end; flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .sig{
+      border-top:1px solid #bbb;
+      padding-top:6px;
+      min-width:320px;
+    }
+    .sig img{
+      max-height:64px;
+      width:auto;
+      display:block;
+      margin:0 0 6px 0;
+    }
+    .obs{
+      background:#fff7ed;
+      border:1px solid #fed7aa;
+      border-radius:10px;
+      padding:10px;
+      margin-top:10px;
+      color:#7c2d12;
+      font-size:12px;
+      line-height:1.35;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logos">
+        <img class="logo" src="logo-prefeitura.png" alt="Prefeitura Municipal de Contenda" onerror="this.style.display='none'">
+        <img class="logo" src="logo-secretaria.png" alt="Secretaria Municipal de Educação" onerror="this.style.display='none'">
+      </div>
+      <div class="titles">
+        <h1>Seleção de Vagas – Professores Ed. Infantil| Rede Municipal de Ensino de Contenda</h1>
+        <p>
+          Preencha a identificação e selecione até 3 opções. <b>1 vaga por turma</b>. Prioridade por <b>data de admissão</b>.
+        </p>
+      </div>
+    </div>
+
+    <div class="stepper">
+      <span class="pill" id="pillStep1">1) Identificação</span>
+      <span class="pill" id="pillStep2">2) Escolhas</span>
+      <span class="pill" id="pillStep3">3) Resultado</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="grid" style="gap:12px;">
+    <div class="card" id="step1">
+      <h2 class="h2">1) Identificação do(a) Professor(a)</h2>
+      <p class="muted" style="margin:0 0 10px 0;">Preencha antes de abrir as opções.</p>
+
+      <div class="grid two">
+        <div>
+          <label for="nome">Nome completo</label>
+          <input id="nome" type="text" placeholder="Digite o nome completo" autocomplete="name" />
+        </div>
+        <div>
+          <label for="cpf">CPF</label>
+          <input id="cpf" type="text" placeholder="000.000.000-00" inputmode="numeric" />
+          <div class="muted">O CPF é usado para localizar/atualizar sua inscrição.</div>
+        </div>
+      </div>
+
+      <div class="grid two" style="margin-top:10px;">
+        <div>
+          <label for="admissao">Data de admissão</label>
+          <input id="admissao" type="date" />
+          <div class="muted">Prioridade: data mais antiga → maior prioridade.</div>
+        </div>
+        <div class="actions" style="align-items:end;">
+          <button class="btn secondary" id="btnBuscar" type="button">Buscar minha inscrição</button>
+          <button class="btn primary" id="btnContinuar" type="button">Continuar</button>
+        </div>
+      </div>
+
+      <div id="msgStep1" class="muted" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card hidden" id="step2">
+      <h2 class="h2">2) Escolhas (até 3)</h2>
+      <p class="muted" style="margin:0 0 10px 0;">
+        Selecione até 3 preferências (Escola + Turma). Pode enviar com 1 ou 2 opções.
+      </p>
+
+      <div id="choicesWrap" class="grid" style="gap:10px;"></div>
+
+      <div class="actions" style="margin-top:10px; justify-content:space-between;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn secondary" id="btnAddChoice" type="button">+ Adicionar escolha</button>
+          <button class="btn secondary" id="btnVoltar" type="button">Voltar</button>
+        </div>
+        <button class="btn primary" id="btnEnviar" type="button">Enviar escolhas</button>
+      </div>
+
+      <div id="msgStep2" class="muted" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card hidden" id="step3">
+      <h2 class="h2">3) Resultado</h2>
+      <div id="resultBox" class="choice"></div>
+
+      <div class="divider"></div>
+
+      <div class="actions no-print" style="justify-content:space-between;">
+        <button class="btn secondary" id="btnNovaConsulta" type="button">Nova consulta</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn secondary" id="btnRecarregar" type="button">Atualizar painel</button>
+          <button class="btn primary" id="btnImprimir" type="button">Gerar comprovante (imprimir)</button>
+        </div>
+      </div>
+
+      <div id="msgStep3" class="muted" style="margin-top:10px;"></div>
+    </div>
+  </section>
+
+  <aside class="card">
+    <h2 class="h2">Painel de Vagas</h2>
+    <p class="muted" style="margin:0 0 10px 0;">
+      Vagas por escola/turma considerando as inscrições da planilha. <b>1 vaga por turma</b>.
+    </p>
+    <div id="vagasTableWrap"></div>
+    <div class="divider"></div>
+    <div class="muted small">
+      <b>Regra:</b> ordena por data de admissão (mais antiga primeiro). Para cada professor(a):
+      tenta 1ª opção; se cheia, tenta 2ª; se cheia, tenta 3ª.
+    </div>
+    <div class="divider"></div>
+    <div class="muted small" id="syncStatus"></div>
+  </aside>
+</main>
+
+<footer>
+  <div class="foot">
+    <b>Prefeitura Municipal de Contenda – Secretaria Municipal de Educação, Cultura, Esporte e Turismo</b><br/>
+    Seleção de vagas para <b>Professores Ed. Infantil</b> – 1 vaga por turma – prioridade por data de admissão.
+  </div>
+</footer>
+
+<!-- Área de impressão (comprovante) -->
+<div id="printArea">
+  <div class="receipt">
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+      <div>
+        <h2>Comprovante de Inscrição – Seleção de Vagas (Professores Ed. Infantil)</h2>
+        <div class="muted">Rede Municipal de Ensino de Contenda</div>
+      </div>
+      <div class="box" style="max-width:280px;">
+        <div class="muted">Protocolo</div>
+        <div class="mono" style="font-weight:900; font-size:14px;" id="rcptProtocolo"></div>
+        <div class="muted" style="margin-top:6px;">Data/Hora</div>
+        <div class="mono" id="rcptDataHora"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <div class="box">
+        <div class="muted">Nome completo</div>
+        <div style="font-weight:900;" id="rcptNome"></div>
+      </div>
+      <div class="box">
+        <div class="muted">CPF</div>
+        <div class="mono" id="rcptCpf"></div>
+      </div>
+      <div class="box">
+        <div class="muted">Data de admissão</div>
+        <div class="mono" id="rcptAdmissao"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="box">
+      <div class="muted">Opções informadas</div>
+      <div id="rcptOpcoes" style="margin-top:6px;"></div>
+    </div>
+
+    <div id="rcptObsSRM" class="obs" style="display:none;"></div>
+
+    <div class="divider"></div>
+
+    <div class="box">
+      <div class="muted">Resultado (conforme prioridade por data de admissão)</div>
+      <div style="margin-top:6px; font-weight:900;" id="rcptResultado"></div>
+      <div class="muted" style="margin-top:6px;" id="rcptMotivo"></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sigwrap">
+      <div class="sig">
+        <img src="assinatura-digital.png" alt="Assinatura Digital" onerror="this.style.display='none'">
+        <div style="font-weight:900;">Secretaria Municipal de Educação, Cultura, Esporte e Turismo</div>
+        <div class="muted small">Assinatura digital (conforme documento institucional)</div>
+      </div>
+      <div class="muted small" style="max-width:360px;">
+        Este comprovante registra a inscrição realizada no sistema. A alocação depende das vagas disponíveis (1 vaga por turma)
+        e da prioridade por data de admissão.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /**********************
+   * FLAGS (CPF EXISTE)
+   **********************/
+  let cpfJaCadastrado = false;
+  let dataAdmissaoSalva = "";
+
+  /**********************
+   * COLE SUA API URL *
+   **********************/
+  const API_URL = "https://script.google.com/macros/s/AKfycbzYUbO7Gu2wF7iLtJLcWjfokTHQS89ZfBwbLCtNuX56hhkzXVgbYwh3_Czm__CuGyd_/exec";
+
+  /**************************
+   * VAGAS: 1 POR TURMA
+   **************************/
+  const DEFAULT_VAGAS_POR_TURMA = 1;
+
+  /**********************
+   * CATÁLOGO COMPLETO
+   **********************/
+  const CATALOGO = [
+    {
+      escolaId: "CMEI VÓ ELOYNA",
+      escolaNome: "CMEI Vó Eloyna",
+      turmas: [
+        { turmaId: "BERÇÁRIO I", turmaNome: "BERÇÁRIO I", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "BERÇÁRIO II", turmaNome: "BERÇÁRIO II", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "MATERNAL", turmaNome: "MATERNAL", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "JARDIM", turmaNome: "JARDIM", vagas: DEFAULT_VAGAS_POR_TURMA },
+      ],
+    },
+     {
+      escolaId: "CMEI ZENEIDE",
+      escolaNome: "CMEI Zeneide",
+      turmas: [
+        { turmaId: "BERÇÁRIO I", turmaNome: "BERÇÁRIO I", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "BERÇÁRIO II", turmaNome: "BERÇÁRIO II", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "MATERNAL", turmaNome: "MATERNAL", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "JARDIM", turmaNome: "JARDIM", vagas: DEFAULT_VAGAS_POR_TURMA },
+      ],
+    },
+     {
+      escolaId: "CMEI TIA CLEUSA",
+      escolaNome: "CMEI Tia Cleusa",
+      turmas: [
+        { turmaId: "BERÇÁRIO I", turmaNome: "BERÇÁRIO I", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "BERÇÁRIO II", turmaNome: "BERÇÁRIO II", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "MATERNAL", turmaNome: "MATERNAL", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "JARDIM", turmaNome: "JARDIM", vagas: DEFAULT_VAGAS_POR_TURMA },
+      ],
+    },
+     {
+      escolaId: "CMEI CELINHA",
+      escolaNome: "CMEI Celeninha Nerone",
+      turmas: [
+        { turmaId: "BERÇÁRIO I", turmaNome: "BERÇÁRIO I", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "BERÇÁRIO II", turmaNome: "BERÇÁRIO II", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "MATERNAL", turmaNome: "MATERNAL", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "JARDIM", turmaNome: "JARDIM", vagas: DEFAULT_VAGAS_POR_TURMA },
+      ],
+    },
+    {
+      escolaId: "CMEI DONA ANITA",
+      escolaNome: "CMEI Dona Anita",
+      turmas: [
+        { turmaId: "BERÇÁRIO I", turmaNome: "BERÇÁRIO I", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "BERÇÁRIO II", turmaNome: "BERÇÁRIO II", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "MATERNAL", turmaNome: "MATERNAL", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "JARDIM", turmaNome: "JARDIM", vagas: DEFAULT_VAGAS_POR_TURMA },
+      ],
+    },
+     {
+      escolaId: "CMEI NHANA",
+      escolaNome: "CMEI Nhana Maria",
+      turmas: [
+        { turmaId: "BERÇÁRIO I", turmaNome: "BERÇÁRIO I", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "BERÇÁRIO II", turmaNome: "BERÇÁRIO II", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "MATERNAL", turmaNome: "MATERNAL", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "JARDIM", turmaNome: "JARDIM", vagas: DEFAULT_VAGAS_POR_TURMA },
+      ],
+    },
+    {
+      escolaId: "CMEI PRÉ JULIA",
+      escolaNome: "CMEI Professora Júlia Pinto Baumel e Tereza Cordeiro de Oliveira",
+      turmas: [
+        { turmaId: "INFANTIL IV", turmaNome: "INFANTIL IV", vagas: DEFAULT_VAGAS_POR_TURMA },
+        { turmaId: "INFANTIL V", turmaNome: "INFANTIL V", vagas: DEFAULT_VAGAS_POR_TURMA },
+      ],
+    },
+  ];
+
+  /*****************
+   * UTILITÁRIOS
+   *****************/
+  const $ = (id) => document.getElementById(id);
+  const onlyDigits = (str) => (str || "").replace(/\D/g, "");
+
+  function formatCPF(value){
+    const d = onlyDigits(value).slice(0, 11);
+    const p1 = d.slice(0,3), p2=d.slice(3,6), p3=d.slice(6,9), p4=d.slice(9,11);
+    let out = p1;
+    if (p2) out += "." + p2;
+    if (p3) out += "." + p3;
+    if (p4) out += "-" + p4;
+    return out;
+  }
+  function maskCPF(cpfDigits){
+    const d = onlyDigits(cpfDigits);
+    if (d.length !== 11) return cpfDigits;
+    return `${d.slice(0,3)}.***.***-${d.slice(9,11)}`;
+  }
+
+  function isValidCPF(cpf){
+    cpf = onlyDigits(cpf);
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1+$/.test(cpf)) return false;
+
+    const calc = (base, factor) => {
+      let total = 0;
+      for (let i=0; i<base.length; i++){
+        total += parseInt(base[i],10) * (factor - i);
+      }
+      const rest = (total * 10) % 11;
+      return (rest === 10) ? 0 : rest;
+    };
+
+    const d1 = calc(cpf.slice(0,9), 10);
+    const d2 = calc(cpf.slice(0,10), 11);
+    return d1 === parseInt(cpf[9],10) && d2 === parseInt(cpf[10],10);
+  }
+
+  function findEscola(escolaId){ return CATALOGO.find(e => e.escolaId === escolaId); }
+  function findTurma(escolaId, turmaId){
+    const esc = findEscola(escolaId);
+    return esc?.turmas?.find(t => t.turmaId === turmaId);
+  }
+  function labelOpcao(escolaId, turmaId){
+    const esc = findEscola(escolaId);
+    const tur = findTurma(escolaId, turmaId);
+    if (!esc || !tur) return "(opção inválida)";
+    return `${esc.escolaNome} — ${tur.turmaNome}`;
+  }
+
+  function cloneVagasBase(){
+    const map = {};
+    for (const e of CATALOGO){
+      for (const t of e.turmas){
+        map[`${e.escolaId}|${t.turmaId}`] = t.vagas;
+      }
+    }
+    return map;
+  }
+
+  function protocoloFrom(cpfDigits, admDate){
+    const last4 = onlyDigits(cpfDigits).slice(-4);
+    const stamp = Date.now().toString(36).toUpperCase();
+    const adm = String(admDate || "").replaceAll("-","");
+    return `CTD-${adm}-${last4}-${stamp}`;
+  }
+
+  function hasSRM(opcoes){
+    return (opcoes || []).some(o => String(o.turmaId || "").toUpperCase().includes("SRM"));
+  }
+
+  /*******************************
+   * ALOCAÇÃO POR DATA DE ADMISSÃO
+   *******************************/
+  function alocarTodos(inscricoes){
+    const ordenadas = [...inscricoes].sort((a,b)=>{
+      const da = new Date(a.dataAdmissao).getTime();
+      const db = new Date(b.dataAdmissao).getTime();
+      if (da !== db) return da - db;
+      const ta = new Date(a.timestamp || 0).getTime();
+      const tb = new Date(b.timestamp || 0).getTime();
+      return ta - tb;
+    });
+
+    const vagas = cloneVagasBase();
+    const resultado = {};
+
+    for (const ins of ordenadas){
+      const cpf = String(ins.cpf || "").replace(/\D/g,"");
+      let alocado = null;
+
+      for (const opc of (ins.opcoes || [])){
+        const key = `${opc.escolaId}|${opc.turmaId}`;
+        if ((vagas[key] ?? 0) > 0){
+          vagas[key] -= 1;
+          alocado = { escolaId: opc.escolaId, turmaId: opc.turmaId };
+          break;
+        }
+      }
+
+      resultado[cpf] = alocado ? {
+        status: "ALOCADO",
+        opcaoAlocada: alocado,
+        motivo: "Vaga confirmada conforme prioridade por data de admissão."
+      } : {
+        status: "LISTA_ESPERA",
+        opcaoAlocada: null,
+        motivo: "Sem vagas disponíveis nas opções informadas após aplicar a prioridade."
+      };
+    }
+
+    return { resultado, vagasRestantes: vagas };
+  }
+
+  /*****************
+   * API (Sheets)
+   *****************/
+  async function safeFetchJson(url, options){
+    const res = await fetch(url, {
+      method: options?.method || "GET",
+      body: options?.body,
+      mode: "cors",
+      cache: "no-store",
+      redirect: "follow",
+      headers: options?.headers,
+    });
+
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { throw new Error("Resposta não é JSON (verifique a implantação / permissões do Apps Script)."); }
+
+    return data;
+  }
+
+  async function apiGetInscricaoPorCpf(cpfValue){
+    const cpfDigits = onlyDigits(cpfValue);
+    const url = `${API_URL}?page=inscricoes_ed_inf&cpf=${encodeURIComponent(cpfDigits)}`;
+    const data = await safeFetchJson(url, { method:"GET" });
+    if (!data.ok) throw new Error(data.error || "Falha ao buscar inscrição por CPF");
+    return data.inscricao ?? null;
+  }
+
+  async function apiGetInscricoes(){
+    const tries = [
+  `${API_URL}?page=inscricoes_ed_inf&list=1`,
+  `${API_URL}?page=inscricoes_ed_inf&all=1`,
+  `${API_URL}?page=inscricoes_ed_inf&action=list`,
+  `${API_URL}?page=inscricoes_ed_inf&op=list`,
+  `${API_URL}?page=inscricoes_ed_inf`
+];
+    let lastErr = null;
+
+    for (const url of tries){
+      try{
+        const data = await safeFetchJson(url, { method:"GET" });
+        const arr = data.inscricoes ?? data.data ?? data.rows ?? null;
+        if (data.ok && Array.isArray(arr)) return arr;
+        lastErr = new Error(data.error || "Resposta OK, mas sem lista de inscrições.");
+      }catch(e){
+        lastErr = e;
+      }
+    }
+
+    throw lastErr || new Error("Falha ao listar inscrições.");
+  }
+
+  async function apiSaveInscricao(payload){
+  payload.page = "inscricoes_ed_inf"; // ✅ Página 2 grava na aba INSCRICOES_ED.INF
+  const form = new FormData();
+  form.append("payload", JSON.stringify(payload));
+  const data = await safeFetchJson(API_URL, { method:"POST", body: form });
+  if (!data.ok) throw new Error(data.error || "Falha ao salvar inscrição");
+  return data;
+}
+
+  /*****************
+   * UI – VAGAS
+   *****************/
+  async function renderVagasTable(){
+    const inscricoes = await apiGetInscricoes();
+    const { vagasRestantes } = alocarTodos(inscricoes);
+
+    let html = `<table>
+      <thead><tr><th>Escola</th><th>Turma</th><th>Vagas</th></tr></thead><tbody>`;
+
+    for (const e of CATALOGO){
+      for (const t of e.turmas){
+        const key = `${e.escolaId}|${t.turmaId}`;
+        const rest = vagasRestantes[key] ?? t.vagas;
+        html += `<tr>
+          <td>${e.escolaNome}</td>
+          <td>${t.turmaNome}</td>
+          <td><b>${rest}</b> / ${t.vagas}</td>
+        </tr>`;
+      }
+    }
+
+    html += `</tbody></table>`;
+    $("vagasTableWrap").innerHTML = html;
+    $("syncStatus").textContent = `Última atualização: ${new Date().toLocaleString("pt-BR")}. Total de inscrições: ${inscricoes.length}.`;
+  }
+
+  /*****************
+   * UI – ESCOLHAS
+   *****************/
+  function updateButtonsState(){
+    const blocks = $("choicesWrap").querySelectorAll(".choice").length;
+    $("btnAddChoice").disabled = blocks >= 3;
+  }
+  function refreshChoiceBadges(){
+    const blocks = [...$("choicesWrap").querySelectorAll(".choice")];
+    blocks.forEach((b, i) => {
+      const badge = b.querySelector(".badge");
+      if (badge) badge.textContent = `${i+1}ª opção`;
+    });
+  }
+
+  function createChoiceBlock(index){
+    const wrap = document.createElement("div");
+    wrap.className = "choice";
+
+    wrap.innerHTML = `
+      <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+        <div><span class="badge">${index+1}ª opção</span> <span class="muted">Selecione escola e turma</span></div>
+        <button class="btn secondary" type="button" style="width:auto; padding:8px 10px;" data-remove>Remover</button>
+      </div>
+
+      <div class="grid two" style="margin-top:10px;">
+        <div>
+          <label>Escola</label>
+          <select data-escola>
+            <option value="">Selecione...</option>
+            ${CATALOGO.map(e => `<option value="${e.escolaId}">${e.escolaNome}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label>Turma</label>
+          <select data-turma disabled>
+            <option value="">Selecione a escola primeiro...</option>
+          </select>
+        </div>
+      </div>
+      <div class="muted small" style="margin-top:8px;" data-hint></div>
+    `;
+
+    const selEscola = wrap.querySelector("[data-escola]");
+    const selTurma = wrap.querySelector("[data-turma]");
+    const hint = wrap.querySelector("[data-hint]");
+    const btnRemove = wrap.querySelector("[data-remove]");
+
+    selEscola.addEventListener("change", () => {
+      const escolaId = selEscola.value;
+      selTurma.innerHTML = "";
+
+      if (!escolaId){
+        selTurma.disabled = true;
+        selTurma.innerHTML = `<option value="">Selecione a escola primeiro...</option>`;
+        hint.textContent = "";
+        return;
+      }
+
+      const esc = findEscola(escolaId);
+      selTurma.disabled = false;
+      selTurma.innerHTML =
+        `<option value="">Selecione...</option>` +
+        esc.turmas.map(t => `<option value="${t.turmaId}">${t.turmaNome}</option>`).join("");
+
+      hint.textContent = "Consulte o painel de vagas antes de confirmar.";
+    });
+
+    btnRemove.addEventListener("click", () => {
+      wrap.remove();
+      refreshChoiceBadges();
+      updateButtonsState();
+    });
+
+    return wrap;
+  }
+
+  function addChoice(){
+    const blocks = $("choicesWrap").querySelectorAll(".choice").length;
+    if (blocks >= 3) return;
+    $("choicesWrap").appendChild(createChoiceBlock(blocks));
+    updateButtonsState();
+  }
+
+  function addChoicePrefilled(escolaId, turmaId){
+    const blocks = $("choicesWrap").querySelectorAll(".choice").length;
+    if (blocks >= 3) return;
+
+    const block = createChoiceBlock(blocks);
+    $("choicesWrap").appendChild(block);
+
+    const selEscola = block.querySelector("[data-escola]");
+    const selTurma = block.querySelector("[data-turma]");
+
+    selEscola.value = escolaId || "";
+    selEscola.dispatchEvent(new Event("change"));
+
+    if (turmaId){
+      selTurma.value = turmaId;
+    }
+
+    updateButtonsState();
+  }
+
+  function readChoices(){
+    const blocks = [...$("choicesWrap").querySelectorAll(".choice")];
+    return blocks.map(b => {
+      const escolaId = b.querySelector("[data-escola]").value;
+      const turmaId = b.querySelector("[data-turma]").value;
+      return { escolaId, turmaId };
+    }).filter(o => o.escolaId && o.turmaId);
+  }
+
+  /*****************
+   * FLUXO DE ETAPAS
+   *****************/
+  function setActiveStep(step){
+    $("step1").classList.toggle("hidden", step !== 1);
+    $("step2").classList.toggle("hidden", step !== 2);
+    $("step3").classList.toggle("hidden", step !== 3);
+
+    $("pillStep1").style.opacity = step === 1 ? "1" : ".75";
+    $("pillStep2").style.opacity = step === 2 ? "1" : ".75";
+    $("pillStep3").style.opacity = step === 3 ? "1" : ".75";
+  }
+
+  function showMsg(id, text, cls){
+    const el = $(id);
+    el.className = cls || "muted";
+    el.textContent = text || "";
+  }
+
+  /*****************
+   * EVENTOS
+   *****************/
+  $("cpf").addEventListener("input", (e)=>{ e.target.value = formatCPF(e.target.value); });
+
+  // Buscar minha inscrição
+  $("btnBuscar").addEventListener("click", async ()=>{
+    try{
+      const cpf = $("cpf").value;
+      if (!isValidCPF(cpf)){
+        showMsg("msgStep1","Informe um CPF válido para buscar sua inscrição.","status-bad");
+        return;
+      }
+      if (!API_URL || API_URL.includes("COLE_AQUI")){
+        showMsg("msgStep1","Configure a API_URL (URL do Apps Script) no HTML.","status-bad");
+        return;
+      }
+
+      showMsg("msgStep1","Buscando sua inscrição...","muted");
+
+      const inscricao = await apiGetInscricaoPorCpf(cpf);
+
+      if (!inscricao){
+        cpfJaCadastrado = false;
+        dataAdmissaoSalva = "";
+        $("admissao").disabled = false;
+        showMsg("msgStep1","Nenhuma inscrição encontrada para este CPF. Você pode continuar e cadastrar.","status-warn");
+        return;
+      }
+
+      $("nome").value = inscricao.nome || "";
+      $("admissao").value = inscricao.dataAdmissao || "";
+
+      // ✅ marca como cadastrado e trava a data
+      cpfJaCadastrado = true;
+      dataAdmissaoSalva = inscricao.dataAdmissao || "";
+      $("admissao").disabled = true;
+
+      $("choicesWrap").innerHTML = "";
+      const op = inscricao.opcoes || [];
+      if (op.length){
+        op.forEach(o => addChoicePrefilled(o.escolaId, o.turmaId));
+      }else{
+        addChoice();
+      }
+
+      updateButtonsState();
+      setActiveStep(2);
+      showMsg("msgStep2","Inscrição encontrada. Altere suas opções e clique em “Enviar escolhas” para atualizar (substitui a anterior).","status-ok");
+      showMsg("msgStep1","");
+
+    }catch(err){
+      cpfJaCadastrado = false;
+      dataAdmissaoSalva = "";
+      $("admissao").disabled = false;
+      showMsg("msgStep1", "Erro ao buscar: " + (err.message || err), "status-bad");
+    }
+  });
+
+  // ✅ Continuar: se CPF existir, NÃO pede data e BLOQUEIA o campo
+  $("btnContinuar").addEventListener("click", async ()=>{
+    const nome = ($("nome").value || "").trim();
+    const cpf = $("cpf").value;
+
+    if (!nome){ showMsg("msgStep1","Informe o nome completo.","status-bad"); return; }
+    if (!isValidCPF(cpf)){ showMsg("msgStep1","CPF inválido. Verifique e tente novamente.","status-bad"); return; }
+    if (!API_URL){ showMsg("msgStep1","API_URL não configurada.","status-bad"); return; }
+
+    showMsg("msgStep1","Verificando CPF...","muted");
+
+    cpfJaCadastrado = false;
+    dataAdmissaoSalva = "";
+    $("admissao").disabled = false;
+
+    try{
+      const existente = await apiGetInscricaoPorCpf(cpf);
+
+      if (existente){
+        cpfJaCadastrado = true;
+        dataAdmissaoSalva = existente.dataAdmissao || "";
+
+        $("admissao").value = dataAdmissaoSalva;
+        $("admissao").disabled = true;
+
+        $("choicesWrap").innerHTML = "";
+        const op = existente.opcoes || [];
+        if (op.length){
+          op.forEach(o => addChoicePrefilled(o.escolaId, o.turmaId));
+        } else {
+          addChoice();
+        }
+
+        updateButtonsState();
+        setActiveStep(2);
+        showMsg("msgStep1","");
+        showMsg("msgStep2","CPF já cadastrado. Você pode editar as escolhas e reenviar (atualiza a inscrição).","status-ok");
+        return;
+      }
+    }catch(err){
+      // se falhar a busca, segue como novo
+    }
+
+    // CPF NÃO existe: exige data
+    const adm = $("admissao").value;
+    if (!adm){
+      showMsg("msgStep1","Informe a data de admissão (obrigatória para novo cadastro).","status-bad");
+      return;
+    }
+
+    cpfJaCadastrado = false;
+    dataAdmissaoSalva = adm;
+    $("admissao").disabled = false;
+
+    $("choicesWrap").innerHTML = "";
+    addChoice();
+    updateButtonsState();
+    setActiveStep(2);
+    showMsg("msgStep1","");
+    showMsg("msgStep2","");
+  });
+
+  $("btnAddChoice").addEventListener("click", ()=> addChoice());
+  $("btnVoltar").addEventListener("click", ()=> setActiveStep(1));
+
+  let lastReceipt = null;
+
+  $("btnEnviar").addEventListener("click", async ()=>{
+    try{
+      if (!API_URL || API_URL.includes("COLE_AQUI")){
+        showMsg("msgStep2","Configure a API_URL (URL do Apps Script) no HTML.","status-bad");
+        return;
+      }
+
+      const nome = ($("nome").value || "").trim();
+      const cpfDigits = onlyDigits($("cpf").value);
+
+      // ✅ se já cadastrado, usa a data salva (mesmo com campo travado)
+      const adm = cpfJaCadastrado ? (dataAdmissaoSalva || $("admissao").value) : $("admissao").value;
+
+      const opcoes = readChoices();
+
+      if (!nome){ showMsg("msgStep2","Informe o nome completo.","status-bad"); return; }
+      if (cpfDigits.length !== 11){ showMsg("msgStep2","CPF inválido.","status-bad"); return; }
+
+      // ✅ só exige data se for NOVO
+      if (!adm && !cpfJaCadastrado){
+        showMsg("msgStep2","Informe a data de admissão.","status-bad");
+        return;
+      }
+      if (!adm && cpfJaCadastrado){
+        showMsg("msgStep2","Cadastro encontrado, mas sem data de admissão registrada. Ajuste o registro na planilha.","status-warn");
+        return;
+      }
+
+      if (opcoes.length === 0){
+        showMsg("msgStep2","Selecione pelo menos 1 opção (Escola + Turma).","status-bad");
+        return;
+      }
+      const keys = opcoes.map(o => `${o.escolaId}|${o.turmaId}`);
+      if (new Set(keys).size !== keys.length){
+        showMsg("msgStep2","Você repetiu a mesma opção. Escolha opções diferentes.","status-bad");
+        return;
+      }
+
+      showMsg("msgStep2","Salvando inscrição (se já existir, será atualizada)...","muted");
+
+      await apiSaveInscricao({ nome, cpf: cpfDigits, dataAdmissao: adm, opcoes });
+
+      const inscricoes = await apiGetInscricoes();
+      const { resultado } = alocarTodos(inscricoes);
+      const res = resultado[cpfDigits];
+
+      lastReceipt = {
+        protocolo: protocoloFrom(cpfDigits, adm),
+        dataHora: new Date().toLocaleString("pt-BR"),
+        nome, cpfDigits, adm, opcoes,
+        res
+      };
+
+      renderResultadoAtual(lastReceipt);
+      await renderVagasTable();
+
+      showMsg("msgStep2","");
+      setActiveStep(3);
+      showMsg("msgStep3","Inscrição salva/atualizada na planilha e resultado calculado com base no banco.","muted");
+    }catch(err){
+      showMsg("msgStep2", `Erro: ${err.message || err}`, "status-bad");
+    }
+  });
+
+  function renderResultadoAtual(receipt){
+    const admBR = receipt.adm.split("-").reverse().join("/");
+    const opcoesTxt = receipt.opcoes.map((o,i)=> `${i+1}ª: ${labelOpcao(o.escolaId, o.turmaId)}`).join("<br/>");
+
+    let statusHtml = "";
+    if (receipt.res?.status === "ALOCADO"){
+      statusHtml = `<div class="status-ok" style="font-weight:900; margin:4px 0 8px 0;">
+        ✅ ALOCADO(A) PROVISORIAMENTE: ${labelOpcao(receipt.res.opcaoAlocada.escolaId, receipt.res.opcaoAlocada.turmaId)}
+      </div>`;
+    }else{
+      statusHtml = `<div class="status-warn" style="font-weight:900; margin:4px 0 8px 0;">
+        ⏳ LISTA DE ESPERA: vaga será preenchida conforme data de admissão
+      </div>`;
+    }
+
+    $("resultBox").innerHTML = `
+      <div class="muted small">Protocolo: <b class="mono">${receipt.protocolo}</b></div>
+      <div style="margin-top:6px;"><b>${receipt.nome}</b></div>
+      <div class="muted" style="margin-top:2px;">CPF: <b class="mono">${maskCPF(receipt.cpfDigits)}</b></div>
+      <div class="muted" style="margin-top:2px;">Data de admissão: <b class="mono">${admBR}</b></div>
+      <div class="divider"></div>
+      <div><b>Opções enviadas:</b><br/>${opcoesTxt}</div>
+      <div class="divider"></div>
+      ${statusHtml}
+      <div class="muted small">${receipt.res?.motivo || ""}</div>
+    `;
+  }
+
+  $("btnImprimir").addEventListener("click", ()=>{
+    if (!lastReceipt){
+      alert("Nenhuma inscrição recente para gerar comprovante.");
+      return;
+    }
+    preencherComprovante(lastReceipt);
+    window.print();
+  });
+
+  function preencherComprovante(receipt){
+    $("rcptProtocolo").textContent = receipt.protocolo;
+    $("rcptDataHora").textContent = receipt.dataHora;
+    $("rcptNome").textContent = receipt.nome;
+    $("rcptCpf").textContent = maskCPF(receipt.cpfDigits);
+    $("rcptAdmissao").textContent = receipt.adm.split("-").reverse().join("/");
+
+    $("rcptOpcoes").innerHTML = receipt.opcoes.map((o,i)=> {
+      return `<div><b>${i+1}ª opção:</b> ${labelOpcao(o.escolaId, o.turmaId)}</div>`;
+    }).join("");
+
+    const obsEl = $("rcptObsSRM");
+    if (hasSRM(receipt.opcoes)){
+      obsEl.style.display = "block";
+      obsEl.innerHTML = `
+        <b>Observação – SRM:</b><br/>
+        O(a) professor(a) inscrito(a) na vaga de <b>SRM</b> deverá comparecer na
+        <b>Secretaria Municipal de Educação de Contenda</b> com <b>diploma</b> e <b>certificados</b>,
+        conforme <b>Edital de Vagas</b>.
+      `;
+    }else{
+      obsEl.style.display = "none";
+      obsEl.innerHTML = "";
+    }
+
+    if (receipt.res?.status === "ALOCADO"){
+      $("rcptResultado").textContent = `ALOCADO(A) PROVISORIAMENTE em: ${labelOpcao(receipt.res.opcaoAlocada.escolaId, receipt.res.opcaoAlocada.turmaId)}`;
+    }else{
+      $("rcptResultado").textContent = "LISTA DE ESPERA (sem vaga nas opções informadas)";
+    }
+    $("rcptMotivo").textContent = receipt.res?.motivo || "";
+  }
+
+  $("btnNovaConsulta").addEventListener("click", ()=>{
+    showMsg("msgStep1","");
+    showMsg("msgStep2","");
+    showMsg("msgStep3","");
+    lastReceipt = null;
+    $("choicesWrap").innerHTML = "";
+
+    // ✅ reseta flags e libera a data para NOVO cadastro
+    cpfJaCadastrado = false;
+    dataAdmissaoSalva = "";
+    $("admissao").disabled = false;
+
+    setActiveStep(1);
+  });
+
+  $("btnRecarregar").addEventListener("click", async ()=>{
+    try{
+      await renderVagasTable();
+      showMsg("msgStep3","Painel atualizado.","status-ok");
+    }catch(err){
+      showMsg("msgStep3", `Erro ao atualizar: ${err.message || err}`, "status-bad");
+    }
+  });
+
+  // INIT
+  (async ()=>{
+    setActiveStep(1);
+    try{
+      if (API_URL && !API_URL.includes("COLE_AQUI")){
+        await renderVagasTable();
+      }else{
+        $("syncStatus").textContent = "Configure a API_URL no HTML para ativar o painel centralizado.";
+      }
+    }catch(err){
+      $("syncStatus").textContent = "Não foi possível carregar o painel: " + (err.message || err);
+    }
+  })();
+</script>
+</body>
+</html>
