@@ -655,7 +655,7 @@
       selTurma.disabled = false;
       selTurma.innerHTML =
         `<option value="">Selecione...</option>` +
-        esc.turmas.map(t => `<option value="${t.turmaId}">${t.turmaNome}</option>`).join("");
+        esc.turmas.map(t => `<option value="${t.turmaId}" data-turno="${t.turno || ""}">${t.turmaNome}</option>`).join("");
 
       hint.textContent = "Consulte o painel de vagas antes de confirmar.";
     });
@@ -697,13 +697,19 @@
   }
 
   function readChoices(){
-    const blocks = [...$("choicesWrap").querySelectorAll(".choice")];
-    return blocks.map(b => {
-      const escolaId = b.querySelector("[data-escola]").value;
-      const turmaId = b.querySelector("[data-turma]").value;
-      return { escolaId, turmaId };
-    }).filter(o => o.escolaId && o.turmaId);
-  }
+  const blocks = [...$("choicesWrap").querySelectorAll(".choice")];
+  return blocks.map(b => {
+    const escolaId = b.querySelector("[data-escola]").value;
+    const selTurma = b.querySelector("[data-turma]");
+    const turmaId  = selTurma.value;
+
+    // pega turno do <option> selecionado
+    const opt = selTurma.options[selTurma.selectedIndex];
+    const turno = (opt && opt.dataset && opt.dataset.turno) ? opt.dataset.turno : "";
+
+    return { escolaId, turmaId, turno };
+  }).filter(o => o.escolaId && o.turmaId);
+}
 
   /*****************
    * FLUXO DE ETAPAS
