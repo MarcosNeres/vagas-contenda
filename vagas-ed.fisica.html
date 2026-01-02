@@ -442,7 +442,7 @@
     const map = {};
     for (const e of CATALOGO){
       for (const t of e.turmas){
-        map[`${e.escolaId}|${t.turmaId}`] = t.vagas;
+        map[`${e.escolaId}|${t.turmaId}|${t.turno || ""}`] = t.vagas;
       }
     }
     return map;
@@ -480,7 +480,7 @@
       let alocado = null;
 
       for (const opc of (ins.opcoes || [])){
-        const key = `${opc.escolaId}|${opc.turmaId}`;
+        const key = `${opc.escolaId}|${opc.turmaId}|${opc.turno || ""}`;
         if ((vagas[key] ?? 0) > 0){
           vagas[key] -= 1;
           alocado = { escolaId: opc.escolaId, turmaId: opc.turmaId };
