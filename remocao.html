@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Concurso de Remoção – Rede Municipal de Contenda</title>
+
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#fff; --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+      --primary:#0b4aa2; --primary2:#0a2a5a; --danger:#b91c1c; --ok:#047857;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(90deg,var(--primary2),var(--primary));color:#fff;padding:14px 16px}
+    header h1{margin:0;font-size:16px;font-weight:700}
+    header p{margin:4px 0 0;font-size:12px;opacity:.9}
+    main{max-width:980px;margin:0 auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);padding:14px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:780px){.row{grid-template-columns:1fr}}
+    .label{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .value{font-size:14px;font-weight:600}
+    select,input[type="radio"]{width:100%}
+    select{padding:10px;border-radius:12px;border:1px solid var(--border);background:#fff}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    button{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-secondary{background:#eef2ff;color:#111}
+    .msg{margin-top:12px;font-size:13px}
+    .msg.ok{color:var(--ok)}
+    .msg.err{color:var(--danger)}
+    .warn{color:var(--danger);font-weight:700}
+    .options{margin-top:10px}
+    .optbox{border:1px dashed var(--border);border-radius:12px;padding:12px;margin-top:10px}
+    .radioRow{display:flex;gap:10px;align-items:center;margin-top:10px}
+    .radioRow input{width:auto}
+    .muted{color:var(--muted);font-size:12px}
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Concurso de Remoção – Rede Municipal de Contenda</h1>
+  <p>Escolha de vagas (acesso individual por link)</p>
+</header>
+
+<main>
+  <div class="card">
+    <div id="loading" class="msg">Carregando dados…</div>
+    <div id="error" class="msg err" style="display:none"></div>
+
+    <div id="content" style="display:none">
+      <div class="row">
+        <div>
+          <div class="label">Candidato(a)</div>
+          <div class="value" id="nome"></div>
+        </div>
+        <div>
+          <div class="label">CPF</div>
+          <div class="value" id="cpf"></div>
+        </div>
+        <div>
+          <div class="label">Data de admissão</div>
+          <div class="value" id="dataAdmissao"></div>
+        </div>
+        <div>
+          <div class="label">Token</div>
+          <div class="value" id="tokenView"></div>
+        </div>
+      </div>
+
+      <div class="options">
+        <div class="label" style="margin-top:14px">Escolha até 3 opções (ordem de preferência)</div>
+        <div class="muted">Se marcar “Próxima etapa” ou “Desistir”, as opções serão desconsideradas.</div>
+
+        <!-- OPÇÃO 1 -->
+        <div class="optbox">
+          <div class="label">Opção 1</div>
+          <div class="row">
+            <div>
+              <div class="label">Escola</div>
+              <select id="op1_escola"></select>
+            </div>
+            <div>
+              <div class="label">Turma</div>
+              <select id="op1_turma"></select>
+            </div>
+            <div>
+              <div class="label">Turno</div>
+              <select id="op1_turno"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPÇÃO 2 -->
+        <div class="optbox">
+          <div class="label">Opção 2</div>
+          <div class="row">
+            <div>
+              <div class="label">Escola</div>
+              <select id="op2_escola"></select>
+            </div>
+            <div>
+              <div class="label">Turma</div>
+              <select id="op2_turma"></select>
+            </div>
+            <div>
+              <div class="label">Turno</div>
+              <select id="op2_turno"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- OPÇÃO 3 -->
+        <div class="optbox">
+          <div class="label">Opção 3</div>
+          <div class="row">
+            <div>
+              <div class="label">Escola</div>
+              <select id="op3_escola"></select>
+            </div>
+            <div>
+              <div class="label">Turma</div>
+              <select id="op3_turma"></select>
+            </div>
+            <div>
+              <div class="label">Turno</div>
+              <select id="op3_turno"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- DECISÃO -->
+        <div class="optbox">
+          <div class="label">Se nenhuma opção atender</div>
+
+          <label class="radioRow">
+            <input type="radio" name="decisao" value="CONTINUAR" checked>
+            <span>Estou escolhendo opções normalmente</span>
+          </label>
+
+          <label class="radioRow">
+            <input type="radio" name="decisao" value="PROXIMA_ETAPA">
+            <span>Nenhuma das opções – tentar próxima etapa</span>
+          </label>
+
+          <label class="radioRow">
+            <input type="radio" name="decisao" value="DESISTIR">
+            <span class="warn">Nenhuma das opções – desistir do concurso de remoção</span>
+          </label>
+        </div>
+
+        <div class="btns">
+          <button class="btn-primary" id="btnEnviar">Enviar escolha</button>
+          <button class="btn-secondary" id="btnLimpar" type="button">Limpar</button>
+        </div>
+
+        <div id="status" class="msg" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // ==========================================
+  // 1) CONFIG: coloque aqui sua URL do Web App
+  // ==========================================
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbygc8b1tADTrOHNadB9hJMxuW9oc9fxUhAj3fAL9DsmXFG8jcyBhSOIR6NydlpC65Mv/exec"; 
+
+  // ==========================================
+  // 2) CATÁLOGO (você pode trocar pelos seus dados)
+  // ✅ Ideal: manter igual à aba VAGAS_REMOCAO
+  // ==========================================
+  const CATALOGO_REMOCAO = [
+    // Exemplo:
+    // { escolaId:"ESCOLA X", turmas:[
+    //   {turmaId:"4º ANO A", turnos:["MANHÃ","TARDE"]},
+    //   {turmaId:"5º ANO", turnos:["MANHÃ"]}
+    // ]},
+  ];
+
+  // ==========================================
+  // Helpers
+  // ==========================================
+  const $ = (id)=>document.getElementById(id);
+
+  function getQueryParam(name){
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name) || "";
+  }
+
+  function maskCpf(cpf){
+    const d = String(cpf||"").replace(/\D/g,"").padStart(11,"0").slice(-11);
+    return d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+  }
+
+  function setMsg(type, text){
+    const el = $("status");
+    el.style.display = "block";
+    el.className = "msg " + (type === "ok" ? "ok" : "err");
+    el.textContent = text;
+  }
+
+  function decisaoAtual(){
+    const r = document.querySelector('input[name="decisao"]:checked');
+    return r ? r.value : "CONTINUAR";
+  }
+
+  function toggleOptionsDisabled(){
+    const dis = (decisaoAtual() !== "CONTINUAR");
+    const ids = [
+      "op1_escola","op1_turma","op1_turno",
+      "op2_escola","op2_turma","op2_turno",
+      "op3_escola","op3_turma","op3_turno",
+    ];
+    ids.forEach(id => $(id).disabled = dis);
+  }
+
+  // ==========================================
+  // 3) Preencher selects a partir do catálogo
+  // ==========================================
+  function fillEscolas(){
+    const escolaSelects = ["op1_escola","op2_escola","op3_escola"].map(id => $(id));
+    escolaSelects.forEach(sel => {
+      sel.innerHTML = `<option value="">Selecione…</option>` + CATALOGO_REMOCAO
+        .map(e => `<option value="${e.escolaId}">${e.escolaId}</option>`)
+        .join("");
+    });
+  }
+
+  function turmasDaEscola(escolaId){
+    const e = CATALOGO_REMOCAO.find(x => x.escolaId === escolaId);
+    return e ? (e.turmas || []) : [];
+  }
+
+  function fillTurmas(opN){
+    const escolaId = $(`op${opN}_escola`).value;
+    const turmaSel = $(`op${opN}_turma`);
+    const turnoSel = $(`op${opN}_turno`);
+
+    const turmas = turmasDaEscola(escolaId);
+
+    turmaSel.innerHTML = `<option value="">Selecione…</option>` +
+      turmas.map(t => `<option value="${t.turmaId}">${t.turmaId}</option>`).join("");
+
+    turnoSel.innerHTML = `<option value="">Selecione…</option>`;
+  }
+
+  function turnosDaTurma(escolaId, turmaId){
+    const t = turmasDaEscola(escolaId).find(x => x.turmaId === turmaId);
+    return t ? (t.turnos || []) : [];
+  }
+
+  function fillTurnos(opN){
+    const escolaId = $(`op${opN}_escola`).value;
+    const turmaId  = $(`op${opN}_turma`).value;
+    const turnoSel = $(`op${opN}_turno`);
+
+    const turnos = turnosDaTurma(escolaId, turmaId);
+    turnoSel.innerHTML = `<option value="">Selecione…</option>` +
+      turnos.map(tr => `<option value="${tr}">${tr}</option>`).join("");
+  }
+
+  // ==========================================
+  // 4) Buscar candidato pelo token (action=me)
+  // ==========================================
+  async function carregarCandidato(token){
+    const url = `${WEBAPP_URL}?page=remocao&action=me&token=${encodeURIComponent(token)}`;
+    const resp = await fetch(url, { method:"GET" });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || "Falha ao validar acesso.");
+
+    return data.candidato;
+  }
+
+  // ==========================================
+  // 5) Enviar inscrição (doPost)
+  // ==========================================
+  function buildOp(opN){
+    const escolaId = $(`op${opN}_escola`).value.trim();
+    const turmaId  = $(`op${opN}_turma`).value.trim();
+    const turno    = $(`op${opN}_turno`).value.trim();
+    if (!escolaId || !turmaId || !turno) return null;
+    return { escolaId, turmaId, turno };
+  }
+
+  async function enviar(token){
+    const decisao = decisaoAtual();
+
+    const payload = {
+      page: "remocao",
+      token,
+      decisao,
+      opcoes: []
+    };
+
+    if (decisao === "CONTINUAR"){
+      const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
+
+      // opcional: impedir duplicadas exatas
+      const seen = new Set();
+      const uniq = [];
+      for (const o of opcoes){
+        const k = `${o.escolaId}|${o.turmaId}|${o.turno}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        uniq.push(o);
+      }
+      payload.opcoes = uniq;
+    }
+
+    const resp = await fetch(WEBAPP_URL, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || "Erro ao enviar.");
+
+    return data;
+  }
+
+  // ==========================================
+  // 6) Init
+  // ==========================================
+  (async function init(){
+    try{
+      const token = getQueryParam("token").trim();
+
+      if (!WEBAPP_URL || WEBAPP_URL.includes("COLE_AQUI")){
+        throw new Error("Configure a variável WEBAPP_URL no remocao.html.");
+      }
+      if (!token){
+        throw new Error("Token ausente. Utilize o link enviado pela Secretaria.");
+      }
+
+      $("tokenView").textContent = token;
+
+      // 1) valida token e carrega candidato
+      const cand = await carregarCandidato(token);
+
+      $("nome").textContent = cand.nome || "";
+      $("cpf").textContent = maskCpf(cand.cpf || "");
+      $("dataAdmissao").textContent = cand.dataAdmissao ? String(cand.dataAdmissao) : "";
+
+      // 2) carrega catálogo nos selects
+      fillEscolas();
+      [1,2,3].forEach(n=>{
+        $(`op${n}_escola`).addEventListener("change", ()=>fillTurmas(n));
+        $(`op${n}_turma`).addEventListener("change", ()=>fillTurnos(n));
+      });
+
+      // 3) decisão: desabilitar opções quando marcar próxima etapa/desistir
+      document.querySelectorAll('input[name="decisao"]').forEach(r=>{
+        r.addEventListener("change", toggleOptionsDisabled);
+      });
+      toggleOptionsDisabled();
+
+      // botões
+      $("btnEnviar").addEventListener("click", async ()=>{
+        $("status").style.display = "none";
+        try{
+          $("btnEnviar").disabled = true;
+          const res = await enviar(token);
+          setMsg("ok", "Escolha registrada com sucesso!");
+        }catch(err){
+          setMsg("err", err.message || String(err));
+        }finally{
+          $("btnEnviar").disabled = false;
+        }
+      });
+
+      $("btnLimpar").addEventListener("click", ()=>{
+        // volta para CONTINUAR
+        document.querySelector('input[name="decisao"][value="CONTINUAR"]').checked = true;
+        toggleOptionsDisabled();
+        [1,2,3].forEach(n=>{
+          $(`op${n}_escola`).value = "";
+          $(`op${n}_turma`).innerHTML = `<option value="">Selecione…</option>`;
+          $(`op${n}_turno`).innerHTML = `<option value="">Selecione…</option>`;
+        });
+        $("status").style.display = "none";
+      });
+
+      $("loading").style.display = "none";
+      $("content").style.display = "block";
+
+    }catch(err){
+      $("loading").style.display = "none";
+      $("error").style.display = "block";
+      $("error").textContent = err.message || String(err);
+    }
+  })();
+</script>
+
+</body>
+</html>
