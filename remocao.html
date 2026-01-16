@@ -298,7 +298,8 @@
   async function enviar(token){
   const decisao = decisaoAtual();
   const payload = { page:"remocao", token, decisao, opcoes:[] };
-    ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
+// ... monta payload.opcoes ...
+ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
 
   if (decisao === "CONTINUAR"){
     const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
@@ -338,6 +339,42 @@
     setTimeout(() => resolve({ ok:true }), 2500);
   });
 }
+<script>
+  let ULTIMA_ESCOLHA = null;
+  let ESCOLHA_FECHADA = false;
+
+  // ... seu código ...
+
+  function imprimirComprovante(){
+    window.print();
+  }
+
+  // ✅ ADICIONE ISTO AQUI
+  function travarTela(){
+    ESCOLHA_FECHADA = true;
+
+    // desabilita selects e radios
+    document.querySelectorAll("select").forEach(el => el.disabled = true);
+    document.querySelectorAll("input[name='decisao']").forEach(el => el.disabled = true);
+
+    // desabilita botões que alteram
+    const btnEnviar = document.getElementById("btnEnviar");
+    const btnLimpar = document.getElementById("btnLimpar");
+    const btnFechar = document.getElementById("btnFechar");
+
+    if (btnEnviar) btnEnviar.disabled = true;
+    if (btnLimpar) btnLimpar.disabled = true;
+    if (btnFechar) btnFechar.disabled = true;
+
+    // deixa imprimir disponível
+    const btnImprimir = document.getElementById("btnImprimir");
+    if (btnImprimir) btnImprimir.disabled = false;
+
+    setMsg("ok", "Escolha finalizada e bloqueada.");
+  }
+
+  // ... resto do seu código ...
+</script>
 
   (async function init(){
     try{
