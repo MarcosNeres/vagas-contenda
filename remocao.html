@@ -36,6 +36,7 @@
     .radioRow{display:flex;gap:10px;align-items:center;margin-top:10px}
     .radioRow input{width:auto}
     .muted{color:var(--muted);font-size:12px}
+    pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5e7eb;padding:10px;border-radius:12px;font-size:12px}
   </style>
 </head>
 
@@ -49,6 +50,7 @@
   <div class="card">
     <div id="loading" class="msg">Carregando dados…</div>
     <div id="error" class="msg err" style="display:none"></div>
+    <div id="debug" style="display:none"></div>
 
     <div id="content" style="display:none">
       <div class="row">
@@ -74,64 +76,33 @@
         <div class="label" style="margin-top:14px">Escolha até 3 opções (ordem de preferência)</div>
         <div class="muted">Se marcar “Próxima etapa” ou “Desistir”, as opções serão desconsideradas.</div>
 
-        <!-- OPÇÃO 1 -->
         <div class="optbox">
           <div class="label">Opção 1</div>
           <div class="row">
-            <div>
-              <div class="label">Escola</div>
-              <select id="op1_escola"></select>
-            </div>
-            <div>
-              <div class="label">Turma</div>
-              <select id="op1_turma"></select>
-            </div>
-            <div>
-              <div class="label">Turno</div>
-              <select id="op1_turno"></select>
-            </div>
+            <div><div class="label">Escola</div><select id="op1_escola"></select></div>
+            <div><div class="label">Turma</div><select id="op1_turma"></select></div>
+            <div><div class="label">Turno</div><select id="op1_turno"></select></div>
           </div>
         </div>
 
-        <!-- OPÇÃO 2 -->
         <div class="optbox">
           <div class="label">Opção 2</div>
           <div class="row">
-            <div>
-              <div class="label">Escola</div>
-              <select id="op2_escola"></select>
-            </div>
-            <div>
-              <div class="label">Turma</div>
-              <select id="op2_turma"></select>
-            </div>
-            <div>
-              <div class="label">Turno</div>
-              <select id="op2_turno"></select>
-            </div>
+            <div><div class="label">Escola</div><select id="op2_escola"></select></div>
+            <div><div class="label">Turma</div><select id="op2_turma"></select></div>
+            <div><div class="label">Turno</div><select id="op2_turno"></select></div>
           </div>
         </div>
 
-        <!-- OPÇÃO 3 -->
         <div class="optbox">
           <div class="label">Opção 3</div>
           <div class="row">
-            <div>
-              <div class="label">Escola</div>
-              <select id="op3_escola"></select>
-            </div>
-            <div>
-              <div class="label">Turma</div>
-              <select id="op3_turma"></select>
-            </div>
-            <div>
-              <div class="label">Turno</div>
-              <select id="op3_turno"></select>
-            </div>
+            <div><div class="label">Escola</div><select id="op3_escola"></select></div>
+            <div><div class="label">Turma</div><select id="op3_turma"></select></div>
+            <div><div class="label">Turno</div><select id="op3_turno"></select></div>
           </div>
         </div>
 
-        <!-- DECISÃO -->
         <div class="optbox">
           <div class="label">Se nenhuma opção atender</div>
 
@@ -163,33 +134,24 @@
 </main>
 
 <script>
-  // ==========================================
-  // 1) CONFIG: coloque aqui sua URL do Web App
-  // ==========================================
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbygc8b1tADTrOHNadB9hJMxuW9oc9fxUhAj3fAL9DsmXFG8jcyBhSOIR6NydlpC65Mv/exec"; 
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbygc8b1tADTrOHNadB9hJMxuW9oc9fxUhAj3fAL9DsmXFG8jcyBhSOIR6NydlpC65Mv/exec";
 
-  // ==========================================
-  // 2) CATÁLOGO (você pode trocar pelos seus dados)
-  // ✅ Ideal: manter igual à aba VAGAS_REMOCAO
-  // ==========================================
   const CATALOGO_REMOCAO = [
-  {
-    escolaId: "ESCOLA MUNICIPAL JOAO FRANCO",
-    turmas: [
-      { turmaId: "3º ANO", turnos: ["MANHÃ"] },
-      { turmaId: "4º ANO", turnos: ["MANHÃ", "TARDE"] }
-    ]
-  },
-  {
-    escolaId: "ESCOLA MUNICIPAL PAULINA URBANIK",
-    turmas: [
-      { turmaId: "2º ANO", turnos: ["TARDE"] }
-    ]
-  }
-];
-  // ==========================================
-  // Helpers
-  // ==========================================
+    {
+      escolaId: "ESCOLA MUNICIPAL JOAO FRANCO",
+      turmas: [
+        { turmaId: "3º ANO", turnos: ["MANHÃ"] },
+        { turmaId: "4º ANO", turnos: ["MANHÃ", "TARDE"] }
+      ]
+    },
+    {
+      escolaId: "ESCOLA MUNICIPAL PAULINA URBANIK",
+      turmas: [
+        { turmaId: "2º ANO", turnos: ["TARDE"] }
+      ]
+    }
+  ];
+
   const $ = (id)=>document.getElementById(id);
 
   function getQueryParam(name){
@@ -209,6 +171,22 @@
     el.textContent = text;
   }
 
+  function showError(msg, debugObj){
+    $("loading").style.display = "none";
+    $("content").style.display = "none";
+    $("error").style.display = "block";
+    $("error").textContent = msg;
+
+    if (debugObj !== undefined){
+      $("debug").style.display = "block";
+      $("debug").innerHTML = `<pre>${escapeHtml(JSON.stringify(debugObj, null, 2))}</pre>`;
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
   function decisaoAtual(){
     const r = document.querySelector('input[name="decisao"]:checked');
     return r ? r.value : "CONTINUAR";
@@ -216,17 +194,13 @@
 
   function toggleOptionsDisabled(){
     const dis = (decisaoAtual() !== "CONTINUAR");
-    const ids = [
+    [
       "op1_escola","op1_turma","op1_turno",
       "op2_escola","op2_turma","op2_turno",
       "op3_escola","op3_turma","op3_turno",
-    ];
-    ids.forEach(id => $(id).disabled = dis);
+    ].forEach(id => $(id).disabled = dis);
   }
 
-  // ==========================================
-  // 3) Preencher selects a partir do catálogo
-  // ==========================================
   function fillEscolas(){
     const escolaSelects = ["op1_escola","op2_escola","op3_escola"].map(id => $(id));
     escolaSelects.forEach(sel => {
@@ -269,21 +243,30 @@
       turnos.map(tr => `<option value="${tr}">${tr}</option>`).join("");
   }
 
-  // ==========================================
-  // 4) Buscar candidato pelo token (action=me)
-  // ==========================================
+  // ✅ Corrigido: valida presença de candidato
   async function carregarCandidato(token){
     const url = `${WEBAPP_URL}?page=remocao&action=me&token=${encodeURIComponent(token)}`;
     const resp = await fetch(url, { method:"GET" });
-    const data = await resp.json();
-    if (!data.ok) throw new Error(data.error || "Falha ao validar acesso.");
 
+    // Se Apps Script devolveu HTML (ex.: tela de permissão), isso evita quebrar JSON.parse
+    const text = await resp.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error("O WebApp não retornou JSON. Verifique se a implantação está como 'Qualquer pessoa' e se você está usando a URL /exec.");
+    }
+
+    if (!data.ok) throw new Error(data.error || "Falha ao validar acesso.");
+    if (!data.candidato) {
+      // mostra o retorno para você ver o que veio
+      const err = new Error("Resposta sem 'candidato'. O doGet(action=me) no Apps Script não está retornando o objeto candidato.");
+      err._debug = data;
+      throw err;
+    }
     return data.candidato;
   }
 
-  // ==========================================
-  // 5) Enviar inscrição (doPost)
-  // ==========================================
   function buildOp(opN){
     const escolaId = $(`op${opN}_escola`).value.trim();
     const turmaId  = $(`op${opN}_turma`).value.trim();
@@ -294,18 +277,10 @@
 
   async function enviar(token){
     const decisao = decisaoAtual();
-
-    const payload = {
-      page: "remocao",
-      token,
-      decisao,
-      opcoes: []
-    };
+    const payload = { page:"remocao", token, decisao, opcoes:[] };
 
     if (decisao === "CONTINUAR"){
       const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
-
-      // opcional: impedir duplicadas exatas
       const seen = new Set();
       const uniq = [];
       for (const o of opcoes){
@@ -323,54 +298,45 @@
       body: JSON.stringify(payload)
     });
 
-    const data = await resp.json();
-    if (!data.ok) throw new Error(data.error || "Erro ao enviar.");
+    const text = await resp.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { throw new Error("O WebApp não retornou JSON no POST. Verifique implantação/permissões."); }
 
+    if (!data.ok) throw new Error(data.error || "Erro ao enviar.");
     return data;
   }
 
-  // ==========================================
-  // 6) Init
-  // ==========================================
   (async function init(){
     try{
       const token = getQueryParam("token").trim();
-
-      if (!WEBAPP_URL || WEBAPP_URL.includes("COLE_AQUI")){
-        throw new Error("Configure a variável WEBAPP_URL no remocao.html.");
-      }
-      if (!token){
-        throw new Error("Token ausente. Utilize o link enviado pela Secretaria.");
-      }
-
+      if (!token) return showError("Token ausente. Utilize o link enviado pela Secretaria.");
       $("tokenView").textContent = token;
 
-      // 1) valida token e carrega candidato
+      // carrega candidato
       const cand = await carregarCandidato(token);
 
       $("nome").textContent = cand.nome || "";
       $("cpf").textContent = maskCpf(cand.cpf || "");
       $("dataAdmissao").textContent = cand.dataAdmissao ? String(cand.dataAdmissao) : "";
 
-      // 2) carrega catálogo nos selects
+      // selects
       fillEscolas();
       [1,2,3].forEach(n=>{
         $(`op${n}_escola`).addEventListener("change", ()=>fillTurmas(n));
         $(`op${n}_turma`).addEventListener("change", ()=>fillTurnos(n));
       });
 
-      // 3) decisão: desabilitar opções quando marcar próxima etapa/desistir
       document.querySelectorAll('input[name="decisao"]').forEach(r=>{
         r.addEventListener("change", toggleOptionsDisabled);
       });
       toggleOptionsDisabled();
 
-      // botões
       $("btnEnviar").addEventListener("click", async ()=>{
         $("status").style.display = "none";
         try{
           $("btnEnviar").disabled = true;
-          const res = await enviar(token);
+          await enviar(token);
           setMsg("ok", "Escolha registrada com sucesso!");
         }catch(err){
           setMsg("err", err.message || String(err));
@@ -380,7 +346,6 @@
       });
 
       $("btnLimpar").addEventListener("click", ()=>{
-        // volta para CONTINUAR
         document.querySelector('input[name="decisao"][value="CONTINUAR"]').checked = true;
         toggleOptionsDisabled();
         [1,2,3].forEach(n=>{
@@ -395,12 +360,10 @@
       $("content").style.display = "block";
 
     }catch(err){
-      $("loading").style.display = "none";
-      $("error").style.display = "block";
-      $("error").textContent = err.message || String(err);
+      // se veio debug do servidor, mostra
+      showError(err.message || String(err), err._debug);
     }
   })();
 </script>
-
 </body>
 </html>
