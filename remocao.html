@@ -16,31 +16,39 @@
     header h1{margin:0;font-size:16px;font-weight:700}
     header p{margin:4px 0 0;font-size:12px;opacity:.9}
     main{max-width:980px;margin:0 auto;padding:16px}
+
     .card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);padding:14px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media (max-width:780px){.row{grid-template-columns:1fr}}
     .label{font-size:12px;color:var(--muted);margin-bottom:6px}
     .value{font-size:14px;font-weight:600}
+
     select,input[type="radio"]{width:100%}
     select{padding:10px;border-radius:12px;border:1px solid var(--border);background:#fff}
+
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     button{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
     .btn-primary{background:var(--primary);color:#fff}
     .btn-secondary{background:#eef2ff;color:#111}
+
     .msg{margin-top:12px;font-size:13px}
     .msg.ok{color:var(--ok)}
     .msg.err{color:var(--danger)}
     .warn{color:var(--danger);font-weight:700}
+
     .options{margin-top:10px}
     .optbox{border:1px dashed var(--border);border-radius:12px;padding:12px;margin-top:10px}
     .radioRow{display:flex;gap:10px;align-items:center;margin-top:10px}
     .radioRow input{width:auto}
     .muted{color:var(--muted);font-size:12px}
+
     pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5e7eb;padding:10px;border-radius:12px;font-size:12px}
 
+    /* ✅ Impressão: imprimir SOMENTE o comprovante */
     @media print{
-      header, .btns, #status { display:none !important; }
+      header, #appCard, .btns, #status { display:none !important; }
       body{ background:#fff; }
+      #printArea{ display:block !important; }
       .card{ box-shadow:none; border:1px solid #ddd; }
     }
   </style>
@@ -59,7 +67,8 @@
 </form>
 
 <main>
-  <div class="card">
+  <!-- ✅ APP (não imprime) -->
+  <div class="card" id="appCard">
     <div id="loading" class="msg">Carregando dados…</div>
     <div id="error" class="msg err" style="display:none"></div>
     <div id="debug" style="display:none"></div>
@@ -134,25 +143,56 @@
           </label>
         </div>
 
+        <!-- ✅ Sem botão Limpar -->
         <div class="btns">
           <button class="btn-primary" id="btnEnviar" type="button">Enviar escolha</button>
           <button class="btn-secondary" id="btnImprimir" type="button">Imprimir inscrição</button>
           <button class="btn-secondary" id="btnFechar" type="button">Fechar escolha</button>
-          <button class="btn-secondary" id="btnLimpar" type="button">Limpar</button>
         </div>
 
         <div id="status" class="msg" style="display:none"></div>
       </div>
     </div>
   </div>
+
+  <!-- ✅ COMPROVANTE (imprime somente ele) -->
+  <section id="printArea" class="card" style="display:none; margin-top:16px">
+    <h2 style="margin:0 0 10px 0; font-size:16px">Comprovante de Inscrição – Concurso de Remoção</h2>
+
+    <div class="row">
+      <div><div class="label">Protocolo</div><div class="value" id="rcptProtocolo"></div></div>
+      <div><div class="label">Data/Hora</div><div class="value" id="rcptDataHora"></div></div>
+      <div><div class="label">Candidato(a)</div><div class="value" id="rcptNome"></div></div>
+      <div><div class="label">CPF</div><div class="value" id="rcptCpf"></div></div>
+      <div><div class="label">Data de admissão</div><div class="value" id="rcptAdmissao"></div></div>
+      <div><div class="label">Token</div><div class="value" id="rcptToken"></div></div>
+    </div>
+
+    <div style="margin-top:12px">
+      <div class="label">Opções registradas</div>
+      <div id="rcptOpcoes" style="font-size:14px"></div>
+    </div>
+
+    <div id="rcptDecisaoWrap" style="margin-top:12px; display:none">
+      <div class="label">Decisão</div>
+      <div class="value" id="rcptDecisao"></div>
+    </div>
+
+    <div id="rcptObs" style="margin-top:12px; font-size:13px"></div>
+
+    <div style="margin-top:14px">
+      <div class="label">Assinatura do(a) candidato(a)</div>
+      <div style="height:42px;border-bottom:1px solid #bbb"></div>
+    </div>
+  </section>
 </main>
 
 <script>
   // ===============================
   // ESTADO
   // ===============================
-  let ULTIMA_ESCOLHA = null;
   let ESCOLHA_FECHADA = false;
+  let lastReceipt = null;
 
   // ===============================
   // CONFIG
@@ -213,8 +253,49 @@
     }
   }
 
-  function imprimirComprovante(){
-    window.print();
+  function nowBr(){
+    const d = new Date();
+    const pad = (n)=>String(n).padStart(2,"0");
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  function gerarProtocolo(token){
+    return `REM-${token}-${Date.now()}`;
+  }
+
+  function labelOpcao(o){
+    return `${o.escolaId} – ${o.turmaId} (${o.turno})`;
+  }
+
+  function preencherComprovante(receipt){
+    $("rcptProtocolo").textContent = receipt.protocolo;
+    $("rcptDataHora").textContent = receipt.dataHora;
+    $("rcptNome").textContent = receipt.nome;
+    $("rcptCpf").textContent = maskCpf(receipt.cpfDigits);
+    $("rcptAdmissao").textContent = receipt.adm || "";
+    $("rcptToken").textContent = receipt.token;
+
+    const decisao = receipt.decisao || "CONTINUAR";
+    if (decisao !== "CONTINUAR"){
+      $("rcptDecisaoWrap").style.display = "block";
+      $("rcptDecisao").textContent =
+        (decisao === "PROXIMA_ETAPA") ? "Nenhuma das opções – tentar próxima etapa"
+        : (decisao === "DESISTIR") ? "Nenhuma das opções – desistir do concurso de remoção"
+        : decisao;
+    } else {
+      $("rcptDecisaoWrap").style.display = "none";
+      $("rcptDecisao").textContent = "";
+    }
+
+    const opcs = receipt.opcoes || [];
+    $("rcptOpcoes").innerHTML = opcs.length
+      ? opcs.map((o,i)=> `<div><b>${i+1}ª opção:</b> ${labelOpcao(o)}</div>`).join("")
+      : `<div class="muted">Sem opções (decisão selecionada).</div>`;
+
+    let obs = "";
+    if (decisao === "PROXIMA_ETAPA") obs = "<b>Observação:</b> Candidato(a) selecionou “Próxima etapa”.";
+    if (decisao === "DESISTIR") obs = "<b>Observação:</b> Candidato(a) selecionou “Desistir do concurso de remoção”.";
+    $("rcptObs").innerHTML = obs;
   }
 
   function travarTela(){
@@ -223,11 +304,12 @@
     document.querySelectorAll("select").forEach(el => el.disabled = true);
     document.querySelectorAll("input[name='decisao']").forEach(el => el.disabled = true);
 
-    ["btnEnviar","btnLimpar","btnFechar"].forEach(id=>{
+    ["btnEnviar","btnFechar"].forEach(id=>{
       const b = $(id);
       if (b) b.disabled = true;
     });
 
+    // imprimir continua habilitado
     const btnImprimir = $("btnImprimir");
     if (btnImprimir) btnImprimir.disabled = false;
 
@@ -341,8 +423,17 @@
       payload.opcoes = uniq;
     }
 
-    // ✅ salva para impressão / conferência
-    ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
+    // ✅ guarda recibo (para imprimir "comprovante", não a tela)
+    lastReceipt = {
+      protocolo: gerarProtocolo(token),
+      dataHora: nowBr(),
+      token,
+      nome: ($("nome").textContent || "").trim(),
+      cpfDigits: (String($("cpf").textContent || "").replace(/\D/g,"")).padStart(11,"0").slice(-11),
+      adm: ($("dataAdmissao").textContent || "").trim(),
+      decisao: payload.decisao,
+      opcoes: payload.opcoes || []
+    };
 
     // ✅ envia via FORM + iframe (sem CORS)
     const form = $("postForm");
@@ -391,7 +482,17 @@
       });
       toggleOptionsDisabled();
 
-      $("btnImprimir").addEventListener("click", imprimirComprovante);
+      // ✅ imprimir comprovante (não a tela)
+      $("btnImprimir").addEventListener("click", ()=>{
+        if (!lastReceipt){
+          alert("Nenhuma inscrição recente para gerar comprovante.");
+          return;
+        }
+        $("printArea").style.display = "block";
+        preencherComprovante(lastReceipt);
+        window.print();
+      });
+
       $("btnFechar").addEventListener("click", travarTela);
 
       $("btnEnviar").addEventListener("click", async ()=>{
@@ -406,21 +507,6 @@
         }finally{
           $("btnEnviar").disabled = false;
         }
-      });
-
-      $("btnLimpar").addEventListener("click", ()=>{
-        if (ESCOLHA_FECHADA) return;
-
-        document.querySelector('input[name="decisao"][value="CONTINUAR"]').checked = true;
-        toggleOptionsDisabled();
-
-        [1,2,3].forEach(n=>{
-          $(`op${n}_escola`).value = "";
-          $(`op${n}_turma`).innerHTML = `<option value="">Selecione…</option>`;
-          $(`op${n}_turno`).innerHTML = `<option value="">Selecione…</option>`;
-        });
-
-        $("status").style.display = "none";
       });
 
       $("loading").style.display = "none";
