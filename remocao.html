@@ -37,6 +37,11 @@
     .radioRow input{width:auto}
     .muted{color:var(--muted);font-size:12px}
     pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5e7eb;padding:10px;border-radius:12px;font-size:12px}
+    @media print{
+  header, .btns, #status { display:none !important; }
+  body{ background:#fff; }
+  .card{ box-shadow:none; border:1px solid #ddd; }
+}
   </style>
 </head>
 
@@ -128,10 +133,12 @@
           </label>
         </div>
 
-        <div class="btns">
-          <button class="btn-primary" id="btnEnviar">Enviar escolha</button>
-          <button class="btn-secondary" id="btnLimpar" type="button">Limpar</button>
-        </div>
+       <div class="btns">
+  <button class="btn-primary" id="btnEnviar">Enviar escolha</button>
+  <button class="btn-secondary" id="btnImprimir" type="button">Imprimir inscrição</button>
+  <button class="btn-secondary" id="btnFechar" type="button">Fechar escolha</button>
+  <button class="btn-secondary" id="btnLimpar" type="button">Limpar</button>
+</div>
 
         <div id="status" class="msg" style="display:none"></div>
       </div>
@@ -140,6 +147,8 @@
 </main>
 
 <script>
+  let ULTIMA_ESCOLHA = null;
+   let ESCOLHA_FECHADA = false;
   const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxkzNX9GE6MOsRmzjIBVrDvGKQC1HF4VAeJzl9-XTG64Iw_ChDvDNGwMeBpBuz8kC3E/exec";
 
   const CATALOGO_REMOCAO = [
@@ -192,6 +201,11 @@
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   }
+  
+  function imprimirComprovante(){
+  // se ainda não enviou, imprime o que está na tela (mesmo assim)
+  window.print();
+}
 
   function decisaoAtual(){
     const r = document.querySelector('input[name="decisao"]:checked');
@@ -284,6 +298,7 @@
   async function enviar(token){
   const decisao = decisaoAtual();
   const payload = { page:"remocao", token, decisao, opcoes:[] };
+    ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
 
   if (decisao === "CONTINUAR"){
     const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
@@ -348,13 +363,19 @@
         r.addEventListener("change", toggleOptionsDisabled);
       });
       toggleOptionsDisabled();
-
+      $("btnImprimir").addEventListener("click", ()=>{
+  imprimirComprovante();
+});
+      $("btnFechar").addEventListener("click", ()=>{
+  travarTela();
+});
       $("btnEnviar").addEventListener("click", async ()=>{
         $("status").style.display = "none";
         try{
           $("btnEnviar").disabled = true;
           await enviar(token);
           setMsg("ok", "Escolha registrada com sucesso!");
+          travarTela();
         }catch(err){
           setMsg("err", err.message || String(err));
         }finally{
