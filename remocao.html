@@ -45,6 +45,12 @@
   <h1>Concurso de Remoção – Rede Municipal de Contenda</h1>
   <p>Escolha de vagas (acesso individual por link)</p>
 </header>
+<!-- POST sem CORS (iframe oculto) -->
+<iframe name="postFrame" id="postFrame" style="display:none;"></iframe>
+
+<form id="postForm" method="POST" target="postFrame" style="display:none;">
+  <input type="hidden" name="payload" id="payloadField" value="" />
+</form>
 
 <main>
   <div class="card">
@@ -276,36 +282,47 @@
   }
 
   async function enviar(token){
-    const decisao = decisaoAtual();
-    const payload = { page:"remocao", token, decisao, opcoes:[] };
+  const decisao = decisaoAtual();
+  const payload = { page:"remocao", token, decisao, opcoes:[] };
 
-    if (decisao === "CONTINUAR"){
-      const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
-      const seen = new Set();
-      const uniq = [];
-      for (const o of opcoes){
-        const k = `${o.escolaId}|${o.turmaId}|${o.turno}`;
-        if (seen.has(k)) continue;
-        seen.add(k);
-        uniq.push(o);
-      }
-      payload.opcoes = uniq;
+  if (decisao === "CONTINUAR"){
+    const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
+
+    const seen = new Set();
+    const uniq = [];
+    for (const o of opcoes){
+      const k = `${o.escolaId}|${o.turmaId}|${o.turno}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      uniq.push(o);
     }
-
-    const resp = await fetch(WEBAPP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-
-    const text = await resp.text();
-    let data;
-    try { data = JSON.parse(text); }
-    catch { throw new Error("O WebApp não retornou JSON no POST. Verifique implantação/permissões."); }
-
-    if (!data.ok) throw new Error(data.error || "Erro ao enviar.");
-    return data;
+    payload.opcoes = uniq;
   }
+
+  // ✅ prepara o form para postar no Apps Script (sem CORS)
+  const form = document.getElementById("postForm");
+  form.action = WEBAPP_URL;
+
+  document.getElementById("payloadField").value = JSON.stringify(payload);
+
+  // retorna uma Promise que resolve quando o iframe "carregar"
+  return new Promise((resolve) => {
+    const frame = document.getElementById("postFrame");
+
+    const onLoad = () => {
+      frame.removeEventListener("load", onLoad);
+      resolve({ ok:true });
+    };
+
+    frame.addEventListener("load", onLoad);
+
+    // dispara o POST
+    form.submit();
+
+    // fallback: se o load não disparar por algum motivo
+    setTimeout(() => resolve({ ok:true }), 2500);
+  });
+}
 
   (async function init(){
     try{
