@@ -37,11 +37,12 @@
     .radioRow input{width:auto}
     .muted{color:var(--muted);font-size:12px}
     pre{white-space:pre-wrap;word-break:break-word;background:#0b1020;color:#e5e7eb;padding:10px;border-radius:12px;font-size:12px}
+
     @media print{
-  header, .btns, #status { display:none !important; }
-  body{ background:#fff; }
-  .card{ box-shadow:none; border:1px solid #ddd; }
-}
+      header, .btns, #status { display:none !important; }
+      body{ background:#fff; }
+      .card{ box-shadow:none; border:1px solid #ddd; }
+    }
   </style>
 </head>
 
@@ -50,9 +51,9 @@
   <h1>Concurso de Remoção – Rede Municipal de Contenda</h1>
   <p>Escolha de vagas (acesso individual por link)</p>
 </header>
+
 <!-- POST sem CORS (iframe oculto) -->
 <iframe name="postFrame" id="postFrame" style="display:none;"></iframe>
-
 <form id="postForm" method="POST" target="postFrame" style="display:none;">
   <input type="hidden" name="payload" id="payloadField" value="" />
 </form>
@@ -133,12 +134,12 @@
           </label>
         </div>
 
-       <div class="btns">
-  <button class="btn-primary" id="btnEnviar">Enviar escolha</button>
-  <button class="btn-secondary" id="btnImprimir" type="button">Imprimir inscrição</button>
-  <button class="btn-secondary" id="btnFechar" type="button">Fechar escolha</button>
-  <button class="btn-secondary" id="btnLimpar" type="button">Limpar</button>
-</div>
+        <div class="btns">
+          <button class="btn-primary" id="btnEnviar" type="button">Enviar escolha</button>
+          <button class="btn-secondary" id="btnImprimir" type="button">Imprimir inscrição</button>
+          <button class="btn-secondary" id="btnFechar" type="button">Fechar escolha</button>
+          <button class="btn-secondary" id="btnLimpar" type="button">Limpar</button>
+        </div>
 
         <div id="status" class="msg" style="display:none"></div>
       </div>
@@ -147,8 +148,15 @@
 </main>
 
 <script>
+  // ===============================
+  // ESTADO
+  // ===============================
   let ULTIMA_ESCOLHA = null;
-   let ESCOLHA_FECHADA = false;
+  let ESCOLHA_FECHADA = false;
+
+  // ===============================
+  // CONFIG
+  // ===============================
   const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxkzNX9GE6MOsRmzjIBVrDvGKQC1HF4VAeJzl9-XTG64Iw_ChDvDNGwMeBpBuz8kC3E/exec";
 
   const CATALOGO_REMOCAO = [
@@ -167,6 +175,9 @@
     }
   ];
 
+  // ===============================
+  // HELPERS
+  // ===============================
   const $ = (id)=>document.getElementById(id);
 
   function getQueryParam(name){
@@ -186,6 +197,10 @@
     el.textContent = text;
   }
 
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
   function showError(msg, debugObj){
     $("loading").style.display = "none";
     $("content").style.display = "none";
@@ -198,14 +213,26 @@
     }
   }
 
-  function escapeHtml(s){
-    return String(s).replace(/[&<>"']/g, (c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
-  }
-  
   function imprimirComprovante(){
-  // se ainda não enviou, imprime o que está na tela (mesmo assim)
-  window.print();
-}
+    window.print();
+  }
+
+  function travarTela(){
+    ESCOLHA_FECHADA = true;
+
+    document.querySelectorAll("select").forEach(el => el.disabled = true);
+    document.querySelectorAll("input[name='decisao']").forEach(el => el.disabled = true);
+
+    ["btnEnviar","btnLimpar","btnFechar"].forEach(id=>{
+      const b = $(id);
+      if (b) b.disabled = true;
+    });
+
+    const btnImprimir = $("btnImprimir");
+    if (btnImprimir) btnImprimir.disabled = false;
+
+    setMsg("ok", "Escolha finalizada e bloqueada.");
+  }
 
   function decisaoAtual(){
     const r = document.querySelector('input[name="decisao"]:checked');
@@ -213,20 +240,23 @@
   }
 
   function toggleOptionsDisabled(){
-    const dis = (decisaoAtual() !== "CONTINUAR");
+    const dis = (decisaoAtual() !== "CONTINUAR") || ESCOLHA_FECHADA;
     [
       "op1_escola","op1_turma","op1_turno",
       "op2_escola","op2_turma","op2_turno",
       "op3_escola","op3_turma","op3_turno",
-    ].forEach(id => $(id).disabled = dis);
+    ].forEach(id => { if ($(id)) $(id).disabled = dis; });
   }
 
+  // ===============================
+  // SELECTS
+  // ===============================
   function fillEscolas(){
     const escolaSelects = ["op1_escola","op2_escola","op3_escola"].map(id => $(id));
     escolaSelects.forEach(sel => {
-      sel.innerHTML = `<option value="">Selecione…</option>` + CATALOGO_REMOCAO
-        .map(e => `<option value="${e.escolaId}">${e.escolaId}</option>`)
-        .join("");
+      sel.innerHTML =
+        `<option value="">Selecione…</option>` +
+        CATALOGO_REMOCAO.map(e => `<option value="${e.escolaId}">${e.escolaId}</option>`).join("");
     });
   }
 
@@ -241,7 +271,6 @@
     const turnoSel = $(`op${opN}_turno`);
 
     const turmas = turmasDaEscola(escolaId);
-
     turmaSel.innerHTML = `<option value="">Selecione…</option>` +
       turmas.map(t => `<option value="${t.turmaId}">${t.turmaId}</option>`).join("");
 
@@ -263,24 +292,23 @@
       turnos.map(tr => `<option value="${tr}">${tr}</option>`).join("");
   }
 
-  // ✅ Corrigido: valida presença de candidato
+  // ===============================
+  // API
+  // ===============================
   async function carregarCandidato(token){
     const url = `${WEBAPP_URL}?page=remocao&action=me&token=${encodeURIComponent(token)}`;
     const resp = await fetch(url, { method:"GET" });
 
-    // Se Apps Script devolveu HTML (ex.: tela de permissão), isso evita quebrar JSON.parse
     const text = await resp.text();
     let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
+    try { data = JSON.parse(text); }
+    catch {
       throw new Error("O WebApp não retornou JSON. Verifique se a implantação está como 'Qualquer pessoa' e se você está usando a URL /exec.");
     }
 
     if (!data.ok) throw new Error(data.error || "Falha ao validar acesso.");
     if (!data.candidato) {
-      // mostra o retorno para você ver o que veio
-      const err = new Error("Resposta sem 'candidato'. O doGet(action=me) no Apps Script não está retornando o objeto candidato.");
+      const err = new Error("Resposta sem 'candidato'. Verifique o doGet(action=me) no Apps Script.");
       err._debug = data;
       throw err;
     }
@@ -296,101 +324,63 @@
   }
 
   async function enviar(token){
-  const decisao = decisaoAtual();
-  const payload = { page:"remocao", token, decisao, opcoes:[] };
-// ... monta payload.opcoes ...
-ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
+    const decisao = decisaoAtual();
+    const payload = { page:"remocao", token, decisao, opcoes:[] };
 
-  if (decisao === "CONTINUAR"){
-    const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
+    if (decisao === "CONTINUAR"){
+      const opcoes = [buildOp(1), buildOp(2), buildOp(3)].filter(Boolean);
 
-    const seen = new Set();
-    const uniq = [];
-    for (const o of opcoes){
-      const k = `${o.escolaId}|${o.turmaId}|${o.turno}`;
-      if (seen.has(k)) continue;
-      seen.add(k);
-      uniq.push(o);
+      const seen = new Set();
+      const uniq = [];
+      for (const o of opcoes){
+        const k = `${o.escolaId}|${o.turmaId}|${o.turno}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        uniq.push(o);
+      }
+      payload.opcoes = uniq;
     }
-    payload.opcoes = uniq;
+
+    // ✅ salva para impressão / conferência
+    ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
+
+    // ✅ envia via FORM + iframe (sem CORS)
+    const form = $("postForm");
+    form.action = WEBAPP_URL;
+    $("payloadField").value = JSON.stringify(payload);
+
+    return new Promise((resolve) => {
+      const frame = $("postFrame");
+
+      const onLoad = () => {
+        frame.removeEventListener("load", onLoad);
+        resolve({ ok:true });
+      };
+
+      frame.addEventListener("load", onLoad);
+      form.submit();
+
+      setTimeout(() => resolve({ ok:true }), 2500);
+    });
   }
 
-  // ✅ prepara o form para postar no Apps Script (sem CORS)
-  const form = document.getElementById("postForm");
-  form.action = WEBAPP_URL;
-
-  document.getElementById("payloadField").value = JSON.stringify(payload);
-
-  // retorna uma Promise que resolve quando o iframe "carregar"
-  return new Promise((resolve) => {
-    const frame = document.getElementById("postFrame");
-
-    const onLoad = () => {
-      frame.removeEventListener("load", onLoad);
-      resolve({ ok:true });
-    };
-
-    frame.addEventListener("load", onLoad);
-
-    // dispara o POST
-    form.submit();
-
-    // fallback: se o load não disparar por algum motivo
-    setTimeout(() => resolve({ ok:true }), 2500);
-  });
-}
-<script>
-  let ULTIMA_ESCOLHA = null;
-  let ESCOLHA_FECHADA = false;
-
-  // ... seu código ...
-
-  function imprimirComprovante(){
-    window.print();
-  }
-
-  // ✅ ADICIONE ISTO AQUI
-  function travarTela(){
-    ESCOLHA_FECHADA = true;
-
-    // desabilita selects e radios
-    document.querySelectorAll("select").forEach(el => el.disabled = true);
-    document.querySelectorAll("input[name='decisao']").forEach(el => el.disabled = true);
-
-    // desabilita botões que alteram
-    const btnEnviar = document.getElementById("btnEnviar");
-    const btnLimpar = document.getElementById("btnLimpar");
-    const btnFechar = document.getElementById("btnFechar");
-
-    if (btnEnviar) btnEnviar.disabled = true;
-    if (btnLimpar) btnLimpar.disabled = true;
-    if (btnFechar) btnFechar.disabled = true;
-
-    // deixa imprimir disponível
-    const btnImprimir = document.getElementById("btnImprimir");
-    if (btnImprimir) btnImprimir.disabled = false;
-
-    setMsg("ok", "Escolha finalizada e bloqueada.");
-  }
-
-  // ... resto do seu código ...
-</script>
-
+  // ===============================
+  // INIT
+  // ===============================
   (async function init(){
     try{
       const token = getQueryParam("token").trim();
       if (!token) return showError("Token ausente. Utilize o link enviado pela Secretaria.");
       $("tokenView").textContent = token;
 
-      // carrega candidato
       const cand = await carregarCandidato(token);
 
       $("nome").textContent = cand.nome || "";
       $("cpf").textContent = maskCpf(cand.cpf || "");
       $("dataAdmissao").textContent = cand.dataAdmissao ? String(cand.dataAdmissao) : "";
 
-      // selects
       fillEscolas();
+
       [1,2,3].forEach(n=>{
         $(`op${n}_escola`).addEventListener("change", ()=>fillTurmas(n));
         $(`op${n}_turma`).addEventListener("change", ()=>fillTurnos(n));
@@ -400,19 +390,17 @@ ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
         r.addEventListener("change", toggleOptionsDisabled);
       });
       toggleOptionsDisabled();
-      $("btnImprimir").addEventListener("click", ()=>{
-  imprimirComprovante();
-});
-      $("btnFechar").addEventListener("click", ()=>{
-  travarTela();
-});
+
+      $("btnImprimir").addEventListener("click", imprimirComprovante);
+      $("btnFechar").addEventListener("click", travarTela);
+
       $("btnEnviar").addEventListener("click", async ()=>{
         $("status").style.display = "none";
         try{
           $("btnEnviar").disabled = true;
           await enviar(token);
           setMsg("ok", "Escolha registrada com sucesso!");
-          travarTela();
+          travarTela(); // fecha automaticamente após enviar
         }catch(err){
           setMsg("err", err.message || String(err));
         }finally{
@@ -421,13 +409,17 @@ ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
       });
 
       $("btnLimpar").addEventListener("click", ()=>{
+        if (ESCOLHA_FECHADA) return;
+
         document.querySelector('input[name="decisao"][value="CONTINUAR"]').checked = true;
         toggleOptionsDisabled();
+
         [1,2,3].forEach(n=>{
           $(`op${n}_escola`).value = "";
           $(`op${n}_turma`).innerHTML = `<option value="">Selecione…</option>`;
           $(`op${n}_turno`).innerHTML = `<option value="">Selecione…</option>`;
         });
+
         $("status").style.display = "none";
       });
 
@@ -435,10 +427,10 @@ ULTIMA_ESCOLHA = JSON.parse(JSON.stringify(payload));
       $("content").style.display = "block";
 
     }catch(err){
-      // se veio debug do servidor, mostra
       showError(err.message || String(err), err._debug);
     }
   })();
 </script>
+
 </body>
 </html>
